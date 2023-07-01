@@ -124,24 +124,6 @@ namespace itk{
 
         input->SetRequestedRegionToLargestPossibleRegion();
 
-        m_Output->ReleaseDataFlagOff();
-
-        InputConstIteratorType skit = InputConstIteratorType(input, input->GetRequestedRegion());
-        OutputIteratorType outIt = OutputIteratorType(m_Output, m_Output->GetRequestedRegion());
-
-        PixelType value;
-        skit.GoToBegin();
-        outIt.GoToBegin();
-        while(!skit.IsAtEnd()){
-            value = skit.Get();
-            if(value >= this->m_LowerThreshold)
-                outIt.Set(m_InsideValue);
-            else
-                outIt.Set(m_OutsideValue);
-            ++skit;
-            ++outIt;
-        }
-
         m_ThresholdFilter->SetInput(input);
         m_ThresholdFilter->SetLowerThreshold( this->m_LowerThreshold);
         m_ThresholdFilter->SetUpperThreshold(NumericTraits<PixelType>::max());
@@ -156,22 +138,27 @@ namespace itk{
 
         using DistIteratorType = ImageRegionIteratorWithIndex< InternalImageType >;
         DistIteratorType dIt = DistIteratorType(distanceMap, distanceMap->GetRequestedRegion());
+        OutputIteratorType outIt = OutputIteratorType(m_Output, m_Output->GetRequestedRegion());
 
         using NodeType = std::pair<itk::Index<3>, float>;
         const auto cmp = [](NodeType const& left, NodeType const& right) { return left.second > right.second; };
         std::priority_queue<NodeType, std::vector<NodeType>, decltype(cmp)> q(cmp);
 
+        outIt.GoToBegin();
         dIt.GoToBegin();
         while(!dIt.IsAtEnd()) {
             if(dIt.Get() > 0){
                 q.push({dIt.GetIndex(), std::abs(dIt.Get())});
-            }
+				outIt.Set(m_InsideValue);
+            }else{
+				outIt.Set(m_OutsideValue);
+			}
             ++dIt;
+			++outIt;
         }
 
         float current_distance = 0;
         IndexType current_index;
-        //unsigned label;
         while(current_distance < maximumDistance && !q.empty()){
             NodeType current_node = q.top();
             current_distance = current_node.second;
@@ -221,33 +208,11 @@ namespace itk{
         const InternalPixelType maximumDistance = (static_cast<InternalPixelType>(m_MaxIterations))*m_MinSpacing;
         input->SetRequestedRegionToLargestPossibleRegion();
 
-        m_Output->ReleaseDataFlagOff();
-        InputConstIteratorType skit = InputConstIteratorType(input, input->GetRequestedRegion());
-        OutputIteratorType outIt = OutputIteratorType(m_Output, m_Output->GetRequestedRegion());
-
-        PixelType value;
-        skit.GoToBegin();
-        outIt.GoToBegin();
-        while(!skit.IsAtEnd()){
-            value = skit.Get();
-            if(value >= this->m_LowerThreshold)
-                outIt.Set(m_InsideValue);
-            else
-                outIt.Set(m_OutsideValue);
-            ++skit;
-            ++outIt;
-        }
-
         m_ThresholdFilter->SetInput(input);
         m_ThresholdFilter->SetLowerThreshold( this->m_LowerThreshold);
         m_ThresholdFilter->SetUpperThreshold(NumericTraits<PixelType>::max());
         m_ThresholdFilter->SetInsideValue(maximumDistance+10*m_MinSpacing);
         m_ThresholdFilter->SetOutsideValue(NumericTraits<InternalPixelType>::ZeroValue());
-
-        auto writer = itk::ImageFileWriter<InternalImageType>::New();
-        writer->SetInput(m_ThresholdFilter->GetOutput());
-        writer->SetFileName("/tmp/t0.tif");
-        writer->Update();
 
         m_ChamferFilter->SetInput(m_ThresholdFilter->GetOutput());
         m_ChamferFilter->SetMaximumDistance(maximumDistance+1);
@@ -259,17 +224,23 @@ namespace itk{
 
         using DistIteratorType = ImageRegionIteratorWithIndex< InternalImageType >;
         DistIteratorType dIt = DistIteratorType(distanceMap, distanceMap->GetRequestedRegion());
+		OutputIteratorType outIt = OutputIteratorType(m_Output, m_Output->GetRequestedRegion());
 
         using NodeType = std::pair<itk::Index<2>, float>;
         const auto cmp = [](NodeType left, NodeType right) { return left.second > right.second; };
         std::priority_queue<NodeType, std::vector<NodeType>, decltype(cmp)> q(cmp);
 
+		outIt.GoToBegin();
         dIt.GoToBegin();
         while(!dIt.IsAtEnd()) {
             if(dIt.Get() > 0){
                 q.push({dIt.GetIndex(), dIt.Get()});
-            }
+				outIt.Set(m_InsideValue);
+            }else{
+				outIt.Set(m_OutsideValue);
+			}
             ++dIt;
+			++outIt;
         }
 
         float current_distance = 0;
