@@ -1,5 +1,5 @@
 # Introduction
-Codes for computation of medial surface based on `Average Outward Flux`. 
+Tools related to skeletonization of objects. 
 The codes requires the [ITK](https://itk.org/) library to work and `CMake` to build.
 # Compilation
 * Create a build directory for compilation
@@ -15,17 +15,17 @@ $sed -i '8s/.*/set(ITK_DIR \/path\/to\/ITK)/' CMakeLists.txt
 * Change into the build directory and generate make files using cmake
 ```bash
 $ cd build
-$ cmake ..
+$ cmake -DCMAKE_BUILD_TYPE=Release ..
 ```
 * Compile using `make`
 ```bash
 $ make -j2
 ```
 If all goes well you should now have `skeltools` executable insed the build folder.
-# Computing the medial surface.
+
+# Computing Object Centerline.
 To Compute the medial curve for `dinosaur` sample image run
 ```bash
-$ skeltools -medialCurve -input samples/dinosaur.tif
+$ skeltools -homotopic -input data/dinosaur.tif -outputFolder results -v
 ```
-If everything runs without errors you should see `medialCurve.tif` and other not so important files 
-inside a newly created `samples/dinosaur` folder.
+If everything runs without errors you should see `dinosaur_homotopic.tif` inside `results` folder.
