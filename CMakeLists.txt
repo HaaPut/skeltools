@@ -45,6 +45,7 @@ set(SOURCES
         src/topology.cpp
 		src/experiment.cpp
 		src/homotopic.cpp
+		src/medial.cpp
         )
 
 set(HEADERS
@@ -53,6 +54,10 @@ set(HEADERS
         include/itkHomotopicThinningImageFilter.h
 		include/experiment.h
 		include/homotopic.h
+		include/util.h
+		include/flux.h
+		include/medial.h
+		include/itkSpokeFieldToAverageOutwardFluxImageFilter.h
         )
 
 add_library(skel SHARED)
@@ -64,7 +69,8 @@ target_compile_definitions(skel PUBLIC "$<$<CONFIG:Debug>:DEBUG_BUILD>")
 
 target_include_directories(skel PUBLIC include)
 
-target_sources(skel PRIVATE ${SOURCES})
+target_sources(skel PRIVATE ${SOURCES}
+		PUBLIC ${HEADERS})
 
 set_target_properties(skel PROPERTIES
         MACOSX_BUNDLE TRUE

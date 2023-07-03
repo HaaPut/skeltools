@@ -10,7 +10,7 @@ $ mkdir build
 The exact path will depend on the location where ITK is installed on your machine.
 Run following command (with appropriate `path/to/ITK`) to set the variable.
 ```bash
-$sed -i '8s/.*/set(ITK_DIR \/path\/to\/ITK)/' CMakeLists.txt
+$sed -i '10s/.*/set(ITK_DIR \/path\/to\/ITK)/' CMakeLists.txt
 ``` 
 * Change into the build directory and generate make files using cmake
 ```bash

@@ -29,6 +29,7 @@
 #include "itkCommandLineArgumentParser.h"
 #include "experiment.h"
 #include "homotopic.h"
+#include "medial.h"
 
 namespace fs = std::filesystem;
 
@@ -55,20 +56,39 @@ std::string helpstring() {
     ss << "Modules:: \n";
     ss << "===========================================\n";
 
-    ss << "\t -homotopic       ::(homotopic thinning)\n";
+    ss << "\t -homotopic       :: homotopic thinning\n";
+    ss << "\t -aof             :: average outward flux based methods\n";
 
+    //-------------------------------------------------------------------------
     ss << "Homotopic Options:: \n";
     ss << "===========================================\n";
 
 	ss << "\t\t -threshold T      ::(default 1)(object threshold for binary object)\n";
 
     //------------------------------------------------------------------------
+    ss << "AOF Options:: \n";
+    ss << "===========================================\n";
+
+    ss << "\t\t Algorithms:\n";
+    ss << "\t\t\t -approximate T      :: Skeletons using thresholding AOF values\n";
+    ss << "\t\t -useprecomputed       :: Use precomputed intermediate images\n";
+    ss << "\t\t -writeIntermediate    :: Write intermediate images\n";
+    ss << "\t\t -spacing x y..        :: size of image voxel\n";
+    ss << "\t\t -smooth V             :: (default 1 px) Variance of gaussian used for smoothing input image\n";
+    ss << "\t\t -lthreshold           :: Lower threshold for generating binary object\n";
+    ss << "\t\t -uthreshold           :: Upper threshold for generating binary object\n";
+
+    //------------------------------------------------------------------------
+
     ss << "\n\n";
     ss << "Examples:\n";
     ss << "=========\n";
     ss << "Compute homotopic skeleton:\n";
     ss << "$./skeltool -homotopic -input data/dinosaur.tif -outputFolder results\n";
-    ss << "------------------------------------------";
+    ss << "------------------------------------------\n";
+    ss << "Compute Approximate Medial Surface:\n";
+    ss << "$ ./skeltool -aof -approximate  -input data/dinosaur.tif -smooth 0.5 -useprecomputed -writeIntermediate -outputFolder results\n";
+    ss << "------------------------------------------\n";
     ss << "\n\n";
 
     std::string helpString(ss.str());
@@ -84,7 +104,7 @@ int main(int argc, char* argv[]){
     logger->SetLevelForFlushing(itk::LoggerBaseEnums::PriorityLevel::DEBUG);
 
 #ifdef DEBUG_BUILD
-    logger->SetPriorityLevel(itk::LoggerBaseEnums::PriorityLevel::WARNING);
+    logger->SetPriorityLevel(itk::LoggerBaseEnums::PriorityLevel::DEBUG);
 #else
     logger->SetPriorityLevel(itk::LoggerBaseEnums::PriorityLevel::CRITICAL);
 #endif
@@ -96,10 +116,12 @@ int main(int argc, char* argv[]){
     // map to list module code, module name.
     std::map<int, std::string> modesMap;
     modesMap[0] = "Homotopic Thinning\n";
+    modesMap[1] = "Average Outward Flux Methods\n";
     modesMap[93] = "Undocumented/Experimental\n";
 
     std::vector<std::string> modules;
     modules.emplace_back("-homotopic");
+    modules.emplace_back("-aof");
     modules.emplace_back("-experiment");
 
     parser->SetCommandLineArguments(argc, argv);
@@ -143,6 +165,9 @@ int main(int argc, char* argv[]){
     if(parser->ArgumentExists("-homotopic")){
         module = 0;
         logger->Info("Selected : " + modesMap[module] + "\n");
+    } else if (parser->ArgumentExists("-aof")) {
+        module = 1;
+        logger->Info("Selected : " + modesMap[module] + "\n");
     } else if (parser->ArgumentExists("-experiment")) {
         module = 93;
         logger->Info("Selected : " + modesMap[module] + "\n");
@@ -154,6 +179,10 @@ int main(int argc, char* argv[]){
         case 0: // homotopic thinning
 			logger->Debug("Homotopic Thinning case\n");
 			homotopic(parser, logger);
+            break;
+        case 1: // aof based medial methods
+            logger->Debug("Flux based medial methods case\n");
+            medial(parser, logger);
             break;
 	    case 93: // experimental
 			logger->Debug("Experimental case\n");

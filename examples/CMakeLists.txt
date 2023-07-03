@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 message(STATUS "Building Examples")
 
-set(ITK_DIR $ENV{HOME}/opt/itk/lib/cmake/ITK-5.3)
-
 find_package(ITK REQUIRED)
 include(${ITK_USE_FILE})
 

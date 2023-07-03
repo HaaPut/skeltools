@@ -52,7 +52,7 @@ namespace itk
         itkNewMacro(Self);
 
         /** Run-time type information (and related methods). */
-        itkTypeMacro( SkeletonImageFilter, ImageToImageFilter );
+        itkTypeMacro( HomotopicThinningImageFilter, ImageToImageFilter );
 
         using InputPointerType = typename InputImageType::ConstPointer;
 
@@ -92,7 +92,7 @@ namespace itk
         itkNewMacro(Self);
 
         /** Run-time type information (and related methods). */
-        itkTypeMacro( SkeletonImageFilter, ImageToImageFilter );
+        itkTypeMacro( HomotopicThinningImageFilter, ImageToImageFilter );
 
         using InputImagePointer = typename Superclass::InputImagePointer;
         using OutputImageType = InputImageType;
