@@ -35,30 +35,30 @@
 
 namespace itk{
 
-    template< class PixelType>
-    HomotopicThinningImageFilter<PixelType , 3>::HomotopicThinningImageFilter(){
-        //m_Accessor.SetConstant(NumericTraits<PixelType>::OneValue());
+    template< class InputPixelType, class OutputPixelType>
+    HomotopicThinningImageFilter<InputPixelType , 3, OutputPixelType>::HomotopicThinningImageFilter(){
+        //m_Accessor.SetConstant(NumericTraits<InputPixelType>::OneValue());
         //this->DebugOn();
         m_RemoveCount = 0;
-        m_InsideValue = NumericTraits<PixelType>::OneValue();
-        m_OutsideValue = NumericTraits<PixelType>::ZeroValue();
+        m_InsideValue = NumericTraits<InputPixelType>::OneValue();
+        m_OutsideValue = NumericTraits<InputPixelType>::ZeroValue();
         m_ChamferFilter = ChamferType::New();
         m_ThresholdFilter = ChamferThresholdFilterType::New();
     }
 
-    template< class PixelType>
-    HomotopicThinningImageFilter<PixelType , 2>::HomotopicThinningImageFilter(){
-        m_Accessor.SetConstant(NumericTraits<PixelType>::OneValue());
+    template< class InputPixelType, class OutputPixelType>
+    HomotopicThinningImageFilter<InputPixelType , 2, OutputPixelType>::HomotopicThinningImageFilter(){
+        m_Accessor.SetConstant(NumericTraits<InputPixelType>::OneValue());
         m_RemoveCount = 0;
-        m_InsideValue = NumericTraits<PixelType>::OneValue();
-        m_OutsideValue = NumericTraits<PixelType>::ZeroValue();
+        m_InsideValue = NumericTraits<InputPixelType>::OneValue();
+        m_OutsideValue = NumericTraits<InputPixelType>::ZeroValue();
         m_ChamferFilter = ChamferType::New();
         m_ThresholdFilter = ChamferThresholdFilterType::New();
     }
 
-    template< class PixelType, unsigned Dimension>
+    template< class InputPixelType, unsigned Dimension, class OutputPixelType>
     void
-    HomotopicThinningImageFilter<PixelType , Dimension>::GenerateInputRequestedRegion()
+    HomotopicThinningImageFilter<InputPixelType , Dimension, OutputPixelType>::GenerateInputRequestedRegion()
     {
         // call the superclass' implementation of this method
         Superclass::GenerateInputRequestedRegion();
@@ -102,8 +102,8 @@ namespace itk{
         }
     }
 
-    template< class PixelType>
-    bool HomotopicThinningImageFilter<PixelType , 3>::isRemovable(IndexType index){
+    template< class InputPixelType, class OutputPixelType>
+    bool HomotopicThinningImageFilter<InputPixelType , 3, OutputPixelType>::isRemovable(IndexType index){
         auto cbar = ::topology::computeCbar<OutputImageType>(m_Output, index);
         auto cstar = ::topology::computeCstar<OutputImageType>(m_Output, index);
         auto label = ::topology::TopologicalLabel(cbar,cstar);
@@ -112,9 +112,9 @@ namespace itk{
         return false;
     }
 
-    template< class PixelType>
+    template< class InputPixelType, class OutputPixelType>
     void
-    HomotopicThinningImageFilter<PixelType , 3>::GenerateData() {
+    HomotopicThinningImageFilter<InputPixelType , 3, OutputPixelType>::GenerateData() {
         this->AllocateOutputs();
         InputImagePointer input = const_cast<InputImageType *>(this->GetInput(0));
         this->m_Output = this->GetOutput(0);
@@ -126,7 +126,7 @@ namespace itk{
 
         m_ThresholdFilter->SetInput(input);
         m_ThresholdFilter->SetLowerThreshold( this->m_LowerThreshold);
-        m_ThresholdFilter->SetUpperThreshold(NumericTraits<PixelType>::max());
+        m_ThresholdFilter->SetUpperThreshold(NumericTraits<InputPixelType>::max());
         m_ThresholdFilter->SetInsideValue(maximumDistance+10*m_MinSpacing);
         m_ThresholdFilter->SetOutsideValue(NumericTraits<InternalPixelType>::ZeroValue());
 
@@ -173,9 +173,9 @@ namespace itk{
         itkDebugMacro("Removed " + std::to_string(this->m_RemoveCount) + " of " + std::to_string(this->m_Count) + " voxels");
     }
 
-    template< class PixelType>
+    template< class InputPixelType, class OutputPixelType>
     bool
-    HomotopicThinningImageFilter<PixelType , 2>::isSimple2(IndexType index){
+    HomotopicThinningImageFilter<InputPixelType , 2, OutputPixelType>::isSimple2(IndexType index){
         std::array<int,8> nbrs = {{0,0,0,0,0,0,0,0}};
         int numNeighbors = 0;
         int numEdges = 0;
@@ -199,20 +199,20 @@ namespace itk{
         return (numNeighbors - numEdges == 1);
     }
 
-    template< class PixelType>
+    template< class InputPixelType, class OutputPixelType>
     void
-    HomotopicThinningImageFilter<PixelType , 2>::GenerateData() {
+    HomotopicThinningImageFilter<InputPixelType , 2, OutputPixelType>::GenerateData() {
         this->AllocateOutputs();
         auto input = const_cast<InputImageType *>(this->GetInput(0));
         this->m_Output = this->GetOutput(0);
-        const InternalPixelType maximumDistance = (static_cast<InternalPixelType>(m_MaxIterations))*m_MinSpacing;
+        const InternalInputPixelType maximumDistance = (static_cast<InternalInputPixelType>(m_MaxIterations))*m_MinSpacing;
         input->SetRequestedRegionToLargestPossibleRegion();
 
         m_ThresholdFilter->SetInput(input);
         m_ThresholdFilter->SetLowerThreshold( this->m_LowerThreshold);
-        m_ThresholdFilter->SetUpperThreshold(NumericTraits<PixelType>::max());
+        m_ThresholdFilter->SetUpperThreshold(NumericTraits<InputPixelType>::max());
         m_ThresholdFilter->SetInsideValue(maximumDistance+10*m_MinSpacing);
-        m_ThresholdFilter->SetOutsideValue(NumericTraits<InternalPixelType>::ZeroValue());
+        m_ThresholdFilter->SetOutsideValue(NumericTraits<InternalInputPixelType>::ZeroValue());
 
         m_ChamferFilter->SetInput(m_ThresholdFilter->GetOutput());
         m_ChamferFilter->SetMaximumDistance(maximumDistance+1);
@@ -263,9 +263,9 @@ namespace itk{
 /**
  *  Print Self
  */
-    template< class PixelType , unsigned Dimension>
+    template< class InputPixelType , unsigned Dimension, class OutputPixelType>
     void
-    HomotopicThinningImageFilter<PixelType , Dimension>::PrintSelf(std::ostream& os, Indent indent) const
+    HomotopicThinningImageFilter<InputPixelType , Dimension, OutputPixelType>::PrintSelf(std::ostream& os, Indent indent) const
     {
         Superclass::PrintSelf(os,indent);
         os << indent << "Boundary distance ordered homotopy preserving  thinning in " << Dimension << " dimensions" << std::endl;

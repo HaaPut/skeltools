@@ -36,13 +36,15 @@
 namespace itk
 {
 
-    template< typename PixelType, unsigned Dimension>
+    template< typename InputPixelType, unsigned Dimension,
+            typename OutputPixelType=InputPixelType>
     class ITK_TEMPLATE_EXPORT  HomotopicThinningImageFilter:
-        public ImageToImageFilter<Image<PixelType, Dimension>, Image<PixelType, Dimension> >
+        public ImageToImageFilter<Image<InputPixelType, Dimension>, Image<OutputPixelType, Dimension> >
     {
     public:
         /** Standard class typedefs. */
-        using InputImageType = Image<PixelType, Dimension>;
+        using InputImageType = Image<InputPixelType, Dimension>;
+        using OutputImageType = Image<OutputPixelType, Dimension>;
         using Self = HomotopicThinningImageFilter;
         using Superclass = ImageToImageFilter<InputImageType, InputImageType>;
         using Pointer = SmartPointer<Self>;
@@ -56,10 +58,9 @@ namespace itk
 
         using InputPointerType = typename InputImageType::ConstPointer;
 
-        using OutputImageType = InputImageType;
-        using OutputPointerType = typename InputImageType::Pointer;
+        using OutputPointerType = typename OutputImageType::Pointer;
 
-        using InputConstIteratorType = ImageRegionConstIterator< InputImageType >;
+        //using InputConstIteratorType = ImageRegionConstIterator< InputImageType >;
         using OutputIteratorType = ImageRegionIteratorWithIndex< InputImageType >;
         using IndexType = typename InputImageType::IndexType;
 
@@ -76,15 +77,16 @@ namespace itk
     };
 
     //---------------------------------------------------------------------
-    template< typename PixelType>
-    class ITK_TEMPLATE_EXPORT  HomotopicThinningImageFilter<PixelType, 3>:
-        public ImageToImageFilter<Image<PixelType, 3>, Image<PixelType, 3> >
+    template< typename InputPixelType, typename OutputPixelType>
+    class ITK_TEMPLATE_EXPORT  HomotopicThinningImageFilter<InputPixelType, 3,OutputPixelType>:
+        public ImageToImageFilter<Image<InputPixelType, 3>, Image<OutputPixelType, 3> >
     {
     public:
         /** Standard class typedefs. */
-        using InputImageType = Image<PixelType, 3>;
+        using InputImageType = Image<InputPixelType, 3>;
+        using OutputImageType = Image<OutputPixelType,3>;
         using Self = HomotopicThinningImageFilter;
-        using Superclass = ImageToImageFilter<InputImageType, InputImageType>;
+        using Superclass = ImageToImageFilter<InputImageType, OutputImageType>;
         using Pointer = SmartPointer<Self>;
         using ConstPointer = SmartPointer<const Self>;
 
@@ -95,10 +97,10 @@ namespace itk
         itkTypeMacro( HomotopicThinningImageFilter, ImageToImageFilter );
 
         using InputImagePointer = typename Superclass::InputImagePointer;
-        using OutputImageType = InputImageType;
-        using OutputImagePointer = typename InputImageType::Pointer;
+        //using OutputImageType = InputImageType;
+        using OutputImagePointer = typename OutputImageType::Pointer;
 
-        using InputConstIteratorType = ImageRegionConstIterator< InputImageType >;
+        //using InputConstIteratorType = ImageRegionConstIterator< InputImageType >;
         using OutputIteratorType = ImageRegionIteratorWithIndex< OutputImageType >;
         using IndexType = typename InputImageType::IndexType;
         using BoundaryConditionType = ConstantBoundaryCondition<InputImageType>;
@@ -114,14 +116,14 @@ namespace itk
         itkSetMacro(MaxIterations, unsigned);
         itkGetConstMacro(MaxIterations, unsigned);
 
-        itkSetMacro(LowerThreshold, PixelType);
-        itkGetConstMacro(LowerThreshold, PixelType);
+        itkSetMacro(LowerThreshold, InputPixelType);
+        itkGetConstMacro(LowerThreshold, InputPixelType);
 
         itkGetConstMacro(RemoveCount, double);
 
-        itkGetConstMacro(InsideValue, PixelType);
+        itkGetConstMacro(InsideValue, InputPixelType);
 
-        itkGetConstMacro(OutsideValue, PixelType);
+        itkGetConstMacro(OutsideValue, InputPixelType);
       protected:
         HomotopicThinningImageFilter();
         ~HomotopicThinningImageFilter() = default;
@@ -130,14 +132,14 @@ namespace itk
 
     private:
         unsigned m_MaxIterations = NumericTraits<unsigned>::max();
-        PixelType m_LowerThreshold = NumericTraits<PixelType>::OneValue();
+        InputPixelType m_LowerThreshold = NumericTraits<InputPixelType>::OneValue();
         double m_MinSpacing = 1;
         typename ChamferType::Pointer m_ChamferFilter;
         typename ChamferThresholdFilterType::Pointer m_ThresholdFilter;
 
         OutputImagePointer m_Output;
-        PixelType m_InsideValue;
-        PixelType m_OutsideValue;
+        OutputPixelType m_InsideValue;
+        OutputPixelType m_OutsideValue;
         double m_RemoveCount;
         double m_Count;
         bool isRemovable(IndexType index);
@@ -146,14 +148,16 @@ namespace itk
     };
 
 //--------------------------------------------------------------------------------------
-    template <typename PixelType>
-    class ITK_TEMPLATE_EXPORT HomotopicThinningImageFilter<PixelType, 2>
-            : public ImageToImageFilter<Image<PixelType, 2>, Image<PixelType, 2>> {
+    template <typename InputPixelType,typename OutputPixelType>
+    class ITK_TEMPLATE_EXPORT HomotopicThinningImageFilter<InputPixelType, 2,OutputPixelType>
+            : public ImageToImageFilter<Image<InputPixelType, 2>, Image<OutputPixelType, 2>> {
     public:
         /** Standard class typedefs. */
-        using InputImageType = Image<PixelType, 2>;
+        using InputImageType = Image<InputPixelType, 2>;
+        using OutputImageType = Image<OutputPixelType, 2>;
+
         using Self = HomotopicThinningImageFilter;
-        using Superclass = ImageToImageFilter<InputImageType, InputImageType>;
+        using Superclass = ImageToImageFilter<InputImageType, OutputImageType>;
         using Pointer = SmartPointer<Self>;
         using ConstPointer = SmartPointer<const Self>;
 
@@ -165,7 +169,7 @@ namespace itk
 
         //using InputPointerType = typename InputImageType::ConstPointer;
 
-        using OutputImageType = InputImageType;
+        //using OutputImageType = InputImageType;
         using OutputImagePointer = typename InputImageType::Pointer;
 
         using InputConstIteratorType = ImageRegionConstIterator< InputImageType >;
@@ -173,24 +177,24 @@ namespace itk
         using IndexType = typename InputImageType::IndexType;
         using BoundaryConditionType = ConstantBoundaryCondition<InputImageType>;
 
-        using InternalPixelType = float;
-        using InternalImageType = Image<InternalPixelType,2>;
+        using InternalInputPixelType = float;
+        using InternalImageType = Image<InternalInputPixelType,2>;
         using ChamferThresholdFilterType = itk::BinaryThresholdImageFilter<InputImageType, InternalImageType>;
         using ChamferType = FastChamferDistanceImageFilter<InternalImageType, InternalImageType>;
 
         itkSetMacro(MaxIterations, unsigned);
         itkGetConstMacro(MaxIterations, unsigned);
 
-        itkSetMacro(LowerThreshold, PixelType);
-        itkGetConstMacro(LowerThreshold, PixelType);
+        itkSetMacro(LowerThreshold, InputPixelType);
+        itkGetConstMacro(LowerThreshold, InputPixelType);
 
         itkGetConstMacro(RemoveCount, double);
         itkGetConstMacro(Count, double);
 
-        itkSetMacro(InsideValue, PixelType);
-        itkGetConstMacro(InsideValue, PixelType);
+        itkSetMacro(InsideValue, InputPixelType);
+        itkGetConstMacro(InsideValue, InputPixelType);
 
-        itkGetConstMacro(OutsideValue, PixelType);
+        itkGetConstMacro(OutsideValue, InputPixelType);
 
     protected:
         HomotopicThinningImageFilter();
@@ -203,14 +207,14 @@ namespace itk
         //bool m_SaveProgressImage = true;
         typename ChamferType::Pointer m_ChamferFilter;
         typename ChamferThresholdFilterType::Pointer m_ThresholdFilter;
-        PixelType m_LowerThreshold =
-                NumericTraits<PixelType>::OneValue();
+        InputPixelType m_LowerThreshold =
+                NumericTraits<InputPixelType>::OneValue();
         unsigned m_MaxIterations = NumericTraits<unsigned>::max();
         float m_MinSpacing = 1;
         double m_RemoveCount = 0;
         double m_Count = 0;
-        PixelType m_InsideValue;
-        PixelType m_OutsideValue;
+        OutputPixelType m_InsideValue;
+        OutputPixelType m_OutsideValue;
 
         OutputImagePointer m_Output;
 
