@@ -141,6 +141,31 @@ namespace topology
         auto cstar = computeCstar<TImage>(image, index);
         return TopologicalLabel(cbar, cstar) == ObjectPointType::Simple;
     }
+    template<class TImage>
+    bool IsSimplePoint2d(typename TImage::Pointer image, typename TImage::IndexType index){
+        typename itk::ConstantBoundaryCondition<TImage> accessor;
+        std::array<int,8> nbrs = {{0,0,0,0,0,0,0,0}};
+        int numNeighbors = 0;
+        int numEdges = 0;
+        for(size_t i = 0 ;i < neighbors8.size(); ++i){
+            nbrs[i] = accessor.GetPixel(index + neighbors8[i], image) > 0;
+            size_t j = (i+1)%8;
+            nbrs[j] = accessor.GetPixel(index + neighbors8[j], image) > 0;
+            if(nbrs[i] == 1 && nbrs[j] == 1){
+                numNeighbors+=2;
+                ++numEdges;
+            }else if(nbrs[i] == 1 || nbrs[j] == 1){
+                ++numNeighbors;
+            }
+        }
+        //remove double counted
+        numNeighbors /=2;
+        //add corner diagonals if corner is 0
+        for (size_t i = 0; i < 8; i+=2){
+            numEdges += (nbrs[(i+7)%8] == 1 && nbrs[i] == 0 && nbrs[(i+1)%8] == 1)? 1: 0;
+        }
+        return (numNeighbors - numEdges == 1);
+    }
 }
 
 #endif //SKELTOOLS_TOPOLOGY_HXX

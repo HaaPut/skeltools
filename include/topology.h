@@ -65,6 +65,9 @@ namespace topology
 
     template<class TImage>
     bool IsSimplePoint(typename TImage::Pointer image,typename TImage::IndexType index);
+
+    template<class TImage>
+    bool IsSimplePoint2d(typename TImage::Pointer image, typename TImage::IndexType index);
 }
 
 #include "topology.hxx"
