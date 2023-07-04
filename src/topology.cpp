@@ -121,7 +121,7 @@ namespace topology{
             {{0,  -1}}
     };
 
-	   ObjectPointType
+	ObjectPointType
     TopologicalLabel(unsigned Cbar, unsigned Cstar){
 
         if (Cbar==0)

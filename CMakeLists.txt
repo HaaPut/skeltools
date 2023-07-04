@@ -46,6 +46,7 @@ set(SOURCES
 		src/experiment.cpp
 		src/homotopic.cpp
 		src/medial.cpp
+		src/skeletonize.cpp
         )
 
 set(HEADERS
@@ -58,6 +59,7 @@ set(HEADERS
 		include/flux.h
 		include/medial.h
 		include/itkSpokeFieldToAverageOutwardFluxImageFilter.h
+		include/skeletonize.h
         )
 
 add_library(skel SHARED)

@@ -24,8 +24,8 @@ $ make -j2
 If all goes well you should now have `skeltools` executable insed the build folder.
 
 # Computing Object Centerline.
-To Compute the medial curve for `dinosaur` sample image run
+To compute (boundary distance weighted) medial curve for `dinosaur` sample image run
 ```bash
-$ skeltools -homotopic -input data/dinosaur.tif -outputFolder results -v
+$ skeltools -priority distance -curve -input data/dinosaur.tif -smooth 0.2  -fillholes -outputFolder results
 ```
-If everything runs without errors you should see `dinosaur_homotopic.tif` inside `results` folder.
+If everything runs without errors you should see `dinosaur_distance_curve.tif` inside `results` folder.

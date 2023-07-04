@@ -19,6 +19,9 @@
 #ifndef SKELTOOLS_TOPOLOGY_HXX
 #define SKELTOOLS_TOPOLOGY_HXX
 
+#include <itkNeighborhoodIterator.h>
+#include <itkNeighborhood.h>
+
 namespace topology
 {
     template<typename TImage>
@@ -85,6 +88,58 @@ namespace topology
             }
         }
         return regions;
+    }
+    template< class TImage>
+    bool IsEndPoint(typename TImage::Pointer image,typename TImage::IndexType index){
+        using BoundaryConditionType = itk::ConstantBoundaryCondition<TImage>;
+        using OutputNeighborhoodIteratorType = itk::NeighborhoodIterator<TImage, BoundaryConditionType>;
+        typename OutputNeighborhoodIteratorType::RadiusType radius;
+        radius.Fill(1);
+        OutputNeighborhoodIteratorType nit(radius, image, image->GetLargestPossibleRegion());
+
+        BoundaryConditionType cbc;
+        nit.OverrideBoundaryCondition(&cbc);
+
+        nit.SetLocation(index);
+
+        int n=0;
+        for( unsigned int i = 0; i < nit.Size(); i++ )
+        {
+            if ( nit.GetIndex() != nit.GetIndex( i ) && nit.GetPixel( i ) == 1 ) //Belonging to the object - 26* connected
+                ++n;
+        }
+        return n < 2;
+
+    }
+    template< class TImage>
+    bool IsBoundaryPoint(typename TImage::Pointer image,typename TImage::IndexType index) {
+        bool IsBoundaryPixel = false;
+        using BoundaryConditionType = itk::ConstantBoundaryCondition<TImage>;
+        using OutputNeighborhoodIteratorType = itk::NeighborhoodIterator<TImage, BoundaryConditionType>;
+        typename OutputNeighborhoodIteratorType::RadiusType radius;
+        radius.Fill(1);
+        OutputNeighborhoodIteratorType nit(radius, image, image->GetLargestPossibleRegion());
+
+        BoundaryConditionType cbc;
+        nit.OverrideBoundaryCondition(&cbc);
+
+        nit.SetLocation(index);
+
+        if (nit.GetCenterPixel() > 0) {
+            for (unsigned int i = 0; i < nit.Size() && !IsBoundaryPixel; i++) {
+                if (nit.GetPixel(i) == 0) {
+                    IsBoundaryPixel = true;
+                    break;
+                }
+            }
+        }
+        return IsBoundaryPixel;
+    }
+    template<class TImage>
+    bool IsSimplePoint(typename TImage::Pointer image,typename TImage::IndexType index){
+        auto cbar = computeCbar<TImage>(image, index);
+        auto cstar = computeCstar<TImage>(image, index);
+        return TopologicalLabel(cbar, cstar) == ObjectPointType::Simple;
     }
 }
 

@@ -27,6 +27,7 @@
 #include <itkImageFileReader.h>
 
 #include "itkCommandLineArgumentParser.h"
+#include "skeletonize.h"
 #include "experiment.h"
 #include "homotopic.h"
 #include "medial.h"
@@ -58,6 +59,7 @@ std::string helpstring() {
 
     ss << "\t -homotopic       :: homotopic thinning\n";
     ss << "\t -aof             :: average outward flux based methods\n";
+    ss << "\t -priority \"type\" ::(default distance) priority weighted heap based skeletonization\n";
 
     //-------------------------------------------------------------------------
     ss << "Homotopic Options:: \n";
@@ -79,6 +81,16 @@ std::string helpstring() {
     ss << "\t\t -uthreshold           :: Upper threshold for generating binary object\n";
 
     //------------------------------------------------------------------------
+    ss << "Priority Options:: \n";
+    ss << "===========================================\n";
+    ss << "\t\t -curve                 :: medial curve algorithm\n";
+    ss << "\t\t -fillholes             :: fill object holes before skeletonization\n";
+    ss << "\t\t -spacing x y..        :: size of image voxel\n";
+    ss << "\t\t -smooth V             :: (default 1 px) Variance of gaussian used for smoothing input image\n";
+    ss << "\t\t -lthreshold           :: Lower threshold for generating binary object\n";
+    ss << "\t\t -uthreshold           :: Upper threshold for generating binary object\n";
+
+    //------------------------------------------------------------------------
 
     ss << "\n\n";
     ss << "Examples:\n";
@@ -88,6 +100,9 @@ std::string helpstring() {
     ss << "------------------------------------------\n";
     ss << "Compute Approximate Medial Surface:\n";
     ss << "$ ./skeltool -aof -approximate  -input data/dinosaur.tif -smooth 0.5 -useprecomputed -writeIntermediate -outputFolder results\n";
+    ss << "------------------------------------------\n";
+    ss << "Compute distance weighted medial curve:\n";
+    ss << "$ ./skeltool -priority distance -curve -input data/dinosaur.tif -smooth 0.2 -fillholes -outputFolder results\n";
     ss << "------------------------------------------\n";
     ss << "\n\n";
 
@@ -117,11 +132,13 @@ int main(int argc, char* argv[]){
     std::map<int, std::string> modesMap;
     modesMap[0] = "Homotopic Thinning\n";
     modesMap[1] = "Average Outward Flux Methods\n";
+    modesMap[2] = "Priority weighted Skeletonization Methods\n";
     modesMap[93] = "Undocumented/Experimental\n";
 
     std::vector<std::string> modules;
     modules.emplace_back("-homotopic");
     modules.emplace_back("-aof");
+    modules.emplace_back("-priority");
     modules.emplace_back("-experiment");
 
     parser->SetCommandLineArguments(argc, argv);
@@ -168,7 +185,10 @@ int main(int argc, char* argv[]){
     } else if (parser->ArgumentExists("-aof")) {
         module = 1;
         logger->Info("Selected : " + modesMap[module] + "\n");
-    } else if (parser->ArgumentExists("-experiment")) {
+    }else if (parser->ArgumentExists("-priority")) {
+        module = 2;
+        logger->Info("Selected : " + modesMap[module] + "\n");
+    }  else if (parser->ArgumentExists("-experiment")) {
         module = 93;
         logger->Info("Selected : " + modesMap[module] + "\n");
     } else {
@@ -183,6 +203,10 @@ int main(int argc, char* argv[]){
         case 1: // aof based medial methods
             logger->Debug("Flux based medial methods case\n");
             medial(parser, logger);
+            break;
+        case 2: // priority queue based skeletonization
+            logger->Debug("Priority queue methods case\n");
+            skeletonize(parser, logger);
             break;
 	    case 93: // experimental
 			logger->Debug("Experimental case\n");

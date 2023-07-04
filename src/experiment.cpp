@@ -23,6 +23,7 @@
 
 #include "config.h"
 #include "experiment.h"
+#include "itkMedialCurveImageFilter.h"
 
 
 template <typename InputPixelType, unsigned int Dimension>
@@ -44,24 +45,23 @@ int experiment_impl(const itk::CommandLineArgumentParser::Pointer &parser,
 	using OutputImageType = InputImageType;
 
 	//....
+    using MedialCurveFilterType = itk::MedialCurveImageFilter<InputImageType, OutputImageType>;
+    typename MedialCurveFilterType::Pointer medialCurveFilter = MedialCurveFilterType::New();
+    medialCurveFilter->SetInput(reader->GetOutput());
 
     std::string outputFileName;
 	parser->GetCommandLineArgument("-output", outputFileName);
 
     using WriterType = itk::ImageFileWriter<OutputImageType>;
     auto writer = WriterType::New();
-    //writer->SetInput(outputFilter->GetOutput());
-    fs::path outputFilePath;
-    outputFilePath = outputFolderPath/(inputFilePath.stem().string() +
-                                       "_experiment." +
-                                       inputFilePath.extension().string());
-    writer->SetFileName(outputFilePath);
+    writer->SetInput(medialCurveFilter->GetOutput());
+    writer->SetFileName(outputFileName);
 	try{
 		writer->Update();
-		logger->Info("Wrote file " + outputFilePath.string() + "\n");
+		logger->Info("Wrote file " + std::string(outputFileName) + "\n");
 	} catch (const itk::ExceptionObject &excep) {
 		logger->Critical("Error Writing  File!\n");
-		logger->Critical(excep.what() + std::string("\n"));
+		logger->Critical(std::string(excep.what()) + "\n");
 		return EXIT_FAILURE;
 	}
 
@@ -166,17 +166,17 @@ int experiment(const itk::CommandLineArgumentParser::Pointer &parser,
     switch (dimensions){
     case 2:
         switch (componentType){
-        case itk::ImageIOBase::UCHAR:
-            return experiment_impl<unsigned char,2>(parser, logger);
-        case itk::ImageIOBase::USHORT:
-            return experiment_impl<unsigned short, 2>(parser, logger);
-        case itk::ImageIOBase::FLOAT:
-            return experiment_impl<float, 2>(parser, logger);
-        case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
-        default:
-          logger->Critical("Unknown ComponentType :: " +
-                           std::string(typeid(componentType).name()) +
-                           " in 2 dimensions\n");
+//        case itk::ImageIOBase::UCHAR:
+//            return experiment_impl<unsigned char,2>(parser, logger);
+//        case itk::ImageIOBase::USHORT:
+//            return experiment_impl<unsigned short, 2>(parser, logger);
+//        case itk::ImageIOBase::FLOAT:
+//            return experiment_impl<float, 2>(parser, logger);
+//        case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
+//        default:
+//          logger->Critical("Unknown ComponentType :: " +
+//                           std::string(typeid(componentType).name()) +
+//                           " in 2 dimensions\n");
         }
         break;
     case 3:
