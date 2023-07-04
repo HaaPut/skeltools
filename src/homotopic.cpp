@@ -20,6 +20,8 @@
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 #include <itkImageIOBase.h>
+#include <itkDiscreteGaussianImageFilter.h>
+#include <itkBinaryFillholeImageFilter.h>
 
 #include "config.h"
 #include "homotopic.h"
@@ -39,9 +41,101 @@ int homotopic_impl(const itk::CommandLineArgumentParser::Pointer &parser,
     auto reader = ReaderType::New();
     reader->SetFileName(inputFileName);
 
+    typename InputImageType::Pointer inputImage;
+
+    double smoothingVariance;
+    InputPixelType objectInsideValue = itk::NumericTraits<InputPixelType>::OneValue();
+    InputPixelType objectOutsideValue = itk::NumericTraits<InputPixelType>::ZeroValue();
+
+    if(parser->GetCommandLineArgument("-smooth",smoothingVariance)){
+        logger->Debug("Set smoothing variance to " + std::to_string(smoothingVariance) + "\n");
+        using FloatImageType = itk::Image<float,Dimension>;
+        using GaussianFilterType = itk::DiscreteGaussianImageFilter<InputImageType , FloatImageType >;
+        typename GaussianFilterType::Pointer smoothingFilter = GaussianFilterType::New();
+        smoothingFilter->SetInput(reader->GetOutput());
+        std::vector<float> varVector(Dimension,smoothingVariance);
+        std::stringstream ss;
+        ss << "Set smoothing variance to : (";
+        for(size_t d = 0; d < Dimension; ++d) ss << varVector[d] << ",";
+        ss << ")\n";
+        logger->Info(ss.str());
+        ss.str("");
+        smoothingFilter->SetVariance(varVector.data());
+        smoothingFilter->SetUseImageSpacingOff();
+
+        using ThresholdFilterType = itk::BinaryThresholdImageFilter< FloatImageType , InputImageType>;
+        typename ThresholdFilterType::Pointer thresholdFilter = ThresholdFilterType::New();
+
+        double lthresh = 0.5;
+        if(parser->GetCommandLineArgument("-lthreshold", lthresh)){
+            logger->Debug("Set lower object threshold to : " + std::to_string(lthresh) + "\n");
+        }else{
+            logger->Debug("Set lower object threshold to default : " + std::to_string(lthresh) + "\n");
+        }
+        thresholdFilter->SetLowerThreshold(lthresh);
+
+        double uthresh = std::numeric_limits<typename ThresholdFilterType::InputImageType::PixelType>::max();
+        if(parser->GetCommandLineArgument("-uthreshold", uthresh)){
+            logger->Debug("Set upper object threshold to : " + std::to_string(uthresh) + "\n");
+        }else{
+            logger->Debug("Set upper object threshold to default : " + std::to_string(uthresh) + "\n");
+        }
+
+        thresholdFilter->SetUpperThreshold(uthresh);
+
+        thresholdFilter->SetOutsideValue(objectOutsideValue);
+        thresholdFilter->SetInsideValue(objectInsideValue);
+        thresholdFilter->SetInput(smoothingFilter->GetOutput());
+        thresholdFilter->Update();
+        inputImage = thresholdFilter->GetOutput();
+    }else{
+        logger->Debug("Using default object without smoothing\n ");
+        reader->Update();
+        using ThresholdFilterType = itk::BinaryThresholdImageFilter< InputImageType , InputImageType>;
+        typename ThresholdFilterType::Pointer thresholdFilter = ThresholdFilterType::New();
+
+        double lthresh = 1;
+        if(parser->GetCommandLineArgument("-lthreshold", lthresh)){
+            logger->Debug("Set lower object threshold to : " + std::to_string(lthresh) + "\n");
+        }else{
+            logger->Debug("Set lower object threshold to default : " + std::to_string(lthresh) + "\n");
+        }
+        thresholdFilter->SetLowerThreshold(static_cast<InputPixelType>(lthresh));
+
+        double uthresh = std::numeric_limits<typename ThresholdFilterType::InputImageType::PixelType>::max();
+        if(parser->GetCommandLineArgument("-uthreshold", uthresh)){
+            logger->Debug("Set upper object threshold to : " + std::to_string(uthresh) + "\n");
+        }else{
+            logger->Debug("Set upper object threshold to default : " + std::to_string(uthresh) + "\n");
+        }
+
+        thresholdFilter->SetUpperThreshold(static_cast<InputPixelType>(uthresh));
+
+
+        thresholdFilter->SetOutsideValue(objectOutsideValue);
+        thresholdFilter->SetInsideValue(objectInsideValue);
+        thresholdFilter->SetInput(reader->GetOutput());
+        thresholdFilter->Update();
+        inputImage = thresholdFilter->GetOutput();
+    }
+
+    typename InputImageType::Pointer objectImage;
+    if(parser->ArgumentExists("-fillholes")){
+        logger->Info("Filling holes in the object\n");
+        using HoleFillingFilterType = itk::BinaryFillholeImageFilter<InputImageType>;
+        typename HoleFillingFilterType::Pointer filledFilter = HoleFillingFilterType::New();
+        filledFilter->SetInput(inputImage);
+        filledFilter->SetForegroundValue(objectInsideValue);
+        filledFilter->Update();
+        objectImage = filledFilter->GetOutput();
+    }else{
+        logger->Debug("Using object without hole filling\n");
+        objectImage = inputImage;
+    }
+
     using HomotopicThinningFilter = itk::HomotopicThinningImageFilter<InputPixelType,Dimension>;
     auto thinningFilter = HomotopicThinningFilter::New();
-    thinningFilter->SetInput(reader->GetOutput());
+    thinningFilter->SetInput(objectImage);
 
 	double objectThreshold = 1;
 	if(parser->GetCommandLineArgument("-threshold", objectThreshold)){

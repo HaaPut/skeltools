@@ -45,16 +45,12 @@ int experiment_impl(const itk::CommandLineArgumentParser::Pointer &parser,
 	using OutputImageType = InputImageType;
 
 	//....
-    using MedialCurveFilterType = itk::MedialCurveImageFilter<InputImageType, OutputImageType>;
-    typename MedialCurveFilterType::Pointer medialCurveFilter = MedialCurveFilterType::New();
-    medialCurveFilter->SetInput(reader->GetOutput());
-
     std::string outputFileName;
 	parser->GetCommandLineArgument("-output", outputFileName);
 
     using WriterType = itk::ImageFileWriter<OutputImageType>;
     auto writer = WriterType::New();
-    writer->SetInput(medialCurveFilter->GetOutput());
+    //writer->SetInput(outputFilter->GetOutput());
     writer->SetFileName(outputFileName);
 	try{
 		writer->Update();
@@ -166,17 +162,17 @@ int experiment(const itk::CommandLineArgumentParser::Pointer &parser,
     switch (dimensions){
     case 2:
         switch (componentType){
-//        case itk::ImageIOBase::UCHAR:
-//            return experiment_impl<unsigned char,2>(parser, logger);
-//        case itk::ImageIOBase::USHORT:
-//            return experiment_impl<unsigned short, 2>(parser, logger);
-//        case itk::ImageIOBase::FLOAT:
-//            return experiment_impl<float, 2>(parser, logger);
-//        case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
-//        default:
-//          logger->Critical("Unknown ComponentType :: " +
-//                           std::string(typeid(componentType).name()) +
-//                           " in 2 dimensions\n");
+        case itk::ImageIOBase::UCHAR:
+            return experiment_impl<unsigned char,2>(parser, logger);
+        case itk::ImageIOBase::USHORT:
+            return experiment_impl<unsigned short, 2>(parser, logger);
+        case itk::ImageIOBase::FLOAT:
+            return experiment_impl<float, 2>(parser, logger);
+        case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
+        default:
+          logger->Critical("Unknown ComponentType :: " +
+                           std::string(typeid(componentType).name()) +
+                           " in 2 dimensions\n");
         }
         break;
     case 3:
