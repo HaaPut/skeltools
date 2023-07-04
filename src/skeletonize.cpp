@@ -33,6 +33,34 @@
 #include "itkMedialCurveImageFilter.h"
 
 
+template<typename ObjectImageType, typename OutputImageType>
+static void
+computeMedialCurve(typename ObjectImageType::Pointer objectImage,
+                   itk::CommandLineArgumentParser::Pointer parser,
+                   itk::Logger::Pointer logger){
+    using MedialCurveFilterType = itk::MedialCurveImageFilter<ObjectImageType, OutputImageType>;
+    typename MedialCurveFilterType::Pointer medialCurveFilter = MedialCurveFilterType::New();
+    medialCurveFilter->SetInput(objectImage);
+
+    std::string priorityType;
+    parser->GetCommandLineArgument("-priority", priorityType);
+    if (priorityType == "distance") {
+        medialCurveFilter->SetPriorityImage(nullptr);
+    }
+    if(parser->ArgumentExists("-weighted")){
+        medialCurveFilter->SetRadiusWeightedSkeleton(true);
+    }else{
+        medialCurveFilter->SetRadiusWeightedSkeleton(false);
+    }
+    medialCurveFilter->Update();
+    auto medialCurve = medialCurveFilter->GetOutput();
+
+    std::string outputFileName;
+    parser->GetCommandLineArgument("-output", outputFileName);
+
+    writeImage<OutputImageType>(outputFileName, medialCurve, logger);
+}
+
 template <typename InputPixelType, unsigned int Dimension>
 int skeletonize_impl(const itk::CommandLineArgumentParser::Pointer &parser,
                     const itk::Logger::Pointer &logger) {
@@ -45,7 +73,6 @@ int skeletonize_impl(const itk::CommandLineArgumentParser::Pointer &parser,
 
     using ObjectImageType = itk::Image<InputPixelType,Dimension>;
     using FloatImageType = itk::Image<float, Dimension>;
-    using OutputImageType = ObjectImageType;
 
     using ReaderType = itk::ImageFileReader<ObjectImageType>;
     auto reader = ReaderType::New();
@@ -138,23 +165,14 @@ int skeletonize_impl(const itk::CommandLineArgumentParser::Pointer &parser,
         logger->Info("Using smoothed object without hole filling\n");
         objectImage = thresholdFilter->GetOutput();
     }
-
-    using MedialCurveFilterType = itk::MedialCurveImageFilter<ObjectImageType, OutputImageType>;
-    typename MedialCurveFilterType::Pointer medialCurveFilter = MedialCurveFilterType::New();
-    medialCurveFilter->SetInput(objectImage);
-
-    std::string priorityType;
-    parser->GetCommandLineArgument("-priority", priorityType);
-    if(priorityType == "distance"){
-        medialCurveFilter->SetPriorityImage(nullptr);
+    objectImage->Update();
+    if (parser->ArgumentExists("-weighted")) {
+        logger->Info("Running radius weighted medial curve\n");
+        computeMedialCurve<ObjectImageType, FloatImageType>(objectImage,parser,logger);
+    }else{
+        logger->Info("Running unweighted medial curve\n");
+        computeMedialCurve<ObjectImageType, ObjectImageType>(objectImage,parser,logger);
     }
-    medialCurveFilter->Update();
-    typename OutputImageType::Pointer medialCurve = medialCurveFilter->GetOutput();
-
-    std::string outputFileName;
-    parser->GetCommandLineArgument("-output", outputFileName);
-
-    writeImage<OutputImageType>(outputFileName, medialCurve, logger);
 
     return EXIT_SUCCESS;
 }
@@ -163,7 +181,7 @@ int skeletonize_impl(const itk::CommandLineArgumentParser::Pointer &parser,
 int skeletonize(const itk::CommandLineArgumentParser::Pointer &parser,
                 const itk::Logger::Pointer &logger) {
 
-    logger->Info("Average outward flux based medial Module\n");
+    logger->Info("Priority queue skeletonize Module\n");
     std::string inputFileName, outputFileName;
     std::string outputFolderName;
 

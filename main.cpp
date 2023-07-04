@@ -83,8 +83,9 @@ std::string helpstring() {
     //------------------------------------------------------------------------
     ss << "Priority Options:: \n";
     ss << "===========================================\n";
-    ss << "\t\t -curve                 :: medial curve algorithm\n";
-    ss << "\t\t -fillholes             :: fill object holes before skeletonization\n";
+    ss << "\t\t -curve                :: medial curve algorithm\n";
+    ss << "\t\t -fillholes            :: fill object holes before skeletonization\n";
+    ss << "\t\t -weighted             :: radius weighted skeleton\n";
     ss << "\t\t -spacing x y..        :: size of image voxel\n";
     ss << "\t\t -smooth V             :: (default 1 px) Variance of gaussian used for smoothing input image\n";
     ss << "\t\t -lthreshold           :: Lower threshold for generating binary object\n";

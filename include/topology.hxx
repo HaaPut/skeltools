@@ -105,7 +105,7 @@ namespace topology
         int n=0;
         for( unsigned int i = 0; i < nit.Size(); i++ )
         {
-            if ( nit.GetIndex() != nit.GetIndex( i ) && nit.GetPixel( i ) == 1 ) //Belonging to the object - 26* connected
+            if ( nit.GetIndex() != nit.GetIndex( i ) && nit.GetPixel( i ) >0 ) //Belonging to the object - 26* connected
                 ++n;
         }
         return n < 2;
@@ -127,7 +127,7 @@ namespace topology
 
         if (nit.GetCenterPixel() > 0) {
             for (unsigned int i = 0; i < nit.Size() && !IsBoundaryPixel; i++) {
-                if (nit.GetPixel(i) == 0) {
+                if (nit.GetPixel(i) <= 0) {
                     IsBoundaryPixel = true;
                     break;
                 }

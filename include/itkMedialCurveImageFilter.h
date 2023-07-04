@@ -105,6 +105,9 @@ namespace itk {
             return m_PriorityImage;
         }
 
+        itkSetMacro(RadiusWeightedSkeleton,bool);
+        itkGetConstMacro(RadiusWeightedSkeleton, bool);
+
     protected:
         MedialCurveImageFilter();
         ~MedialCurveImageFilter() = default;
@@ -121,6 +124,7 @@ namespace itk {
         OutputPointerType m_Queued;
         OutputPointerType m_Skeleton;
         PriorityImagePointerType m_PriorityImage;
+        bool m_RadiusWeightedSkeleton;
     };
 
 

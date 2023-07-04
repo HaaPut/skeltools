@@ -28,6 +28,7 @@ namespace itk {
     template<class TInputImage, class TOutputImage>
     MedialCurveImageFilter<TInputImage, TOutputImage>::MedialCurveImageFilter() {
         m_PriorityImage = nullptr;
+        m_RadiusWeightedSkeleton = true;
     }
 
     template<class TInputImage, class TOutputImage>
@@ -61,6 +62,7 @@ namespace itk {
         binaryImageGenerator->SetInsideValue(NumericTraits<PixelType>::ZeroValue());
         binaryImageGenerator->Update();
         auto binaryInput = binaryImageGenerator->GetOutput();
+        PriorityImagePointerType distanceImage = nullptr;
 
         if(m_PriorityImage == nullptr) {
             using PriorityFilterType = DanielssonDistanceMapImageFilter<TInputImage, PriorityImageType>;
@@ -70,7 +72,10 @@ namespace itk {
             priorityFilter->Update();
             this->m_PriorityImage = priorityFilter->GetOutput();
             m_PriorityImage->ReleaseDataFlagOff();
+            distanceImage = m_PriorityImage;
         }
+        assert(distanceImage != nullptr && "Distance image cannot be nullptr\n");
+
         this->m_Skeleton = this->GetOutput();
         this->AllocateOutputs();
 
@@ -81,16 +86,21 @@ namespace itk {
         this->m_Queued->Allocate();
 
         OutputIteratorType skit(this->m_Skeleton, this->m_Skeleton->GetLargestPossibleRegion());
-        InputConstIteratorType it(binaryInput, binaryInput->GetLargestPossibleRegion());
-        it.GoToBegin();
+        PriorityImageConstIteratorType dIt(distanceImage, distanceImage->GetLargestPossibleRegion() );
+        dIt.GoToBegin();
         skit.GoToBegin();
         while (!skit.IsAtEnd()) {
-            if(it.Get() == 0) {
-                skit.Set(1);
+            PriorityValueType value = dIt.Get();
+            if(value > 0) {
+                if(this->m_RadiusWeightedSkeleton) {
+                    skit.Set(value);
+                }else{
+                    skit.Set(1);
+                }
             }else{
                 skit.Set(0);
             }
-            ++it;
+            ++dIt;
             ++skit;
         }
     }
