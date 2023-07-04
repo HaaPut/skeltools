@@ -109,6 +109,10 @@ namespace topology{
             {12,16,18}
     };
     std::vector<bool> n6 = {false,false,true,false,false,false,true,false,true,true,false,true,false,false,false,true,false,false};
+    //neighbor ordering is important.
+    //0 1 2
+    //7 x 3
+    //6 5 4
     std::vector<itk::Offset<2>> neighbors8 = {
             {{-1, -1}},
             {{-1, 0}},
