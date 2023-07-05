@@ -73,6 +73,12 @@ namespace itk {
             this->m_PriorityImage = priorityFilter->GetOutput();
             m_PriorityImage->ReleaseDataFlagOff();
             distanceImage = m_PriorityImage;
+        }else{
+            auto distanceFilter = DanielssonDistanceMapImageFilter<TInputImage, PriorityImageType>::New();
+            distanceFilter->SetInput(binaryInput);
+            distanceFilter->UseImageSpacingOn();
+            distanceFilter->Update();
+            distanceImage = distanceFilter->GetOutput();
         }
         assert(distanceImage != nullptr && "Distance image cannot be nullptr\n");
 
