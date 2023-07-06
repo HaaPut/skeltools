@@ -28,6 +28,7 @@ namespace itk {
     template<class TInputImage, class TOutputImage>
     AverageOutwardFluxImageFilter<TInputImage, TOutputImage>::AverageOutwardFluxImageFilter() {
         this->NormalsToASphere();
+        m_InwardFlux = false;
     }
 
     template<class TInputImage, class TOutputImage>
@@ -145,6 +146,7 @@ namespace itk {
                     f -= (spokeVector * point);
                 }
             }
+            if (m_InwardFlux) f *= -1;
             aofIt.Set(f);
         }
     }

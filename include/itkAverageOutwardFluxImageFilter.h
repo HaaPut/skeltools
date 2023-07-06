@@ -82,7 +82,9 @@ template< class TInputImage,
         void GenerateData() override;
 
         void PrintSelf(std::ostream& os, Indent indent) const;
-
+        void ComputeInwardFluxOn(){
+            m_InwardFlux = true;
+        }
 private:
         void NormalsToASphere();
         void ComputeSpokeField();
@@ -91,7 +93,7 @@ private:
         typename DistanceImageType::Pointer m_DistanceMap;
         typename OffSetImageType::Pointer m_ClosestPointTransform;
         BoundaryConditionType m_FieldAccessor;
-
+        bool m_InwardFlux;
     };
 } // end namespace itk
 #ifndef ITK_MANUAL_INSTANTIATION
