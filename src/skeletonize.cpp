@@ -26,11 +26,75 @@
 #include <itkBinaryFillholeImageFilter.h>
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkChangeInformationImageFilter.h>
+#include <itkMultiplyImageFilter.h>
 
 #include "util.h"
+#include "flux.h"
 #include "config.h"
 #include "experiment.h"
 #include "itkMedialCurveImageFilter.h"
+#include "itkAOFAnchoredMedialCurveImageFilter.h"
+#include "itkSpokeFieldToAverageOutwardFluxImageFilter.h"
+
+
+template<typename ObjectImageType, typename OutputImageType>
+static void
+computeAOFAnchoredMedialCurve(typename ObjectImageType::Pointer objectImage,
+                   itk::CommandLineArgumentParser::Pointer parser,
+                   itk::Logger::Pointer logger){
+    logger->Debug("Starting AOF computation for priority\n");
+    constexpr unsigned Dimension = ObjectImageType::ImageDimension;
+    using DistanceImageType = itk::Image<float, Dimension>;
+    using SpokeFieldImageType = typename itk::Image<itk::Vector < float, Dimension>, Dimension > ;
+
+    auto distClosestPointPair =
+            computeObjectSignedDistanceSpokesPair<ObjectImageType, DistanceImageType>(parser, logger);
+    auto spokeField = distClosestPointPair.second;
+
+    using AOFFilterType = itk::SpokeFieldToAverageOutwardFluxImageFilter<SpokeFieldImageType, float>;
+    typename AOFFilterType::Pointer aofFilter = AOFFilterType::New();
+    aofFilter->SetInput(spokeField);
+    aofFilter->Update();
+
+    using MedialCurveFilterType = itk::AOFAnchoredMedialCurveImageFilter<ObjectImageType, OutputImageType>;
+    typename MedialCurveFilterType::Pointer medialCurveFilter = MedialCurveFilterType::New();
+    medialCurveFilter->SetInput(objectImage);
+
+    medialCurveFilter->SetAOFImage(aofFilter->GetOutput());
+
+    std::string priorityType;
+    parser->GetCommandLineArgument("-priority", priorityType);
+    if (priorityType == "distance") {
+        using ScaleFilterType = itk::MultiplyImageFilter<DistanceImageType, DistanceImageType, DistanceImageType>;
+        auto inverter = ScaleFilterType::New();
+        inverter->SetInput(distClosestPointPair.first);
+        inverter->SetConstant(-1);
+        inverter->Update();
+        medialCurveFilter->SetPriorityImage(inverter->GetOutput());//distClosestPointPair.first);
+    }
+    if(parser->ArgumentExists("-weighted")){
+        medialCurveFilter->SetRadiusWeightedSkeleton(true);
+    }else{
+        medialCurveFilter->SetRadiusWeightedSkeleton(false);
+    }
+
+    float threshold = -30;
+    if(parser->GetCommandLineArgument("-threshold",threshold)){
+        logger->Info("Set End point threshold = " + std::to_string(threshold) + "\n");
+    }else{
+        logger->Debug("Set End point threshold to default " + std::to_string(threshold) + "\n");
+    }
+
+    medialCurveFilter->SetAOFThreshold(threshold);
+
+    medialCurveFilter->Update();
+    auto medialCurve = medialCurveFilter->GetOutput();
+
+    std::string outputFileName;
+    parser->GetCommandLineArgument("-output", outputFileName);
+
+    writeImage<OutputImageType>(outputFileName, medialCurve, logger);
+}
 
 
 template<typename ObjectImageType, typename OutputImageType>
@@ -166,14 +230,28 @@ int skeletonize_impl(const itk::CommandLineArgumentParser::Pointer &parser,
         objectImage = thresholdFilter->GetOutput();
     }
     objectImage->Update();
-    if (parser->ArgumentExists("-weighted")) {
-        logger->Info("Running radius weighted medial curve\n");
-        computeMedialCurve<ObjectImageType, FloatImageType>(objectImage,parser,logger);
-    }else{
-        logger->Info("Running unweighted medial curve\n");
-        computeMedialCurve<ObjectImageType, ObjectImageType>(objectImage,parser,logger);
-    }
 
+    std::string anchorType;
+    parser->GetCommandLineArgument("-anchor", anchorType);
+    if (anchorType == "aof") {
+        if (parser->ArgumentExists("-weighted")) {
+            logger->Info("Running radius weighted AOF Anchored medial curve\n");
+            computeAOFAnchoredMedialCurve<ObjectImageType, FloatImageType>(objectImage, parser, logger);
+        } else {
+            logger->Info("Running unweighted AOF Anchored medial curve\n");
+            computeAOFAnchoredMedialCurve<ObjectImageType, ObjectImageType>(objectImage, parser, logger);
+        }
+
+    }
+    else {
+        if (parser->ArgumentExists("-weighted")) {
+            logger->Info("Running radius weighted medial curve\n");
+            computeMedialCurve<ObjectImageType, FloatImageType>(objectImage, parser, logger);
+        } else {
+            logger->Info("Running unweighted medial curve\n");
+            computeMedialCurve<ObjectImageType, ObjectImageType>(objectImage, parser, logger);
+        }
+    }
     return EXIT_SUCCESS;
 }
 
@@ -206,7 +284,7 @@ int skeletonize(const itk::CommandLineArgumentParser::Pointer &parser,
     // Set output folder
     if (!hasOutputFolderPath){
         if(hasOutputFilePath){
-            outputFolderPath = outputFilePath.parent_path();
+            outputFolderPath = fs::path(outputFileName).parent_path();
         }else{
             outputFolderPath = inputFilePath.parent_path();
         }
@@ -278,6 +356,22 @@ int skeletonize(const itk::CommandLineArgumentParser::Pointer &parser,
         logger->Debug("This shouldn't have happened \n");
         logger->Info("Priority Type set to default " + priorityType + "\n");
     }
+
+    std::set<std::string> allowedAnchorTypes = {"","aof"};
+    std::string anchorType = "";
+    if(parser->GetCommandLineArgument("-anchor", anchorType)){
+        std::transform(anchorType.begin(), anchorType.end(), anchorType.begin(),
+                       [](unsigned char c){ return std::tolower(c); });
+        if(allowedAnchorTypes.find(anchorType) == allowedAnchorTypes.end()){
+            logger->Warning("Unknown anchor type " + anchorType + "\n");
+            anchorType = "";
+            logger->Warning("Reset anchor type to none\n");
+        }
+    }else{
+        logger->Info("Default none type anchor  \n");
+    }
+
+
 
     if(parser->ArgumentExists("-curve")) {
         logger->Info("Running Medial Curve computation\n");

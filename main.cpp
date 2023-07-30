@@ -90,6 +90,7 @@ std::string helpstring() {
     ss << "\t\t -smooth V             :: (default 1 px) Variance of gaussian used for smoothing input image\n";
     ss << "\t\t -lthreshold           :: Lower threshold for generating binary object\n";
     ss << "\t\t -uthreshold           :: Upper threshold for generating binary object\n";
+    ss << "\t\t -anchor [aof,""]      :: (optional, default none)use anchored end points\n";
 
     //------------------------------------------------------------------------
 
@@ -103,7 +104,7 @@ std::string helpstring() {
     ss << "$ ./skeltool -aof -approximate  -input data/dinosaur.tif -smooth 0.5 -useprecomputed -writeIntermediate -outputFolder results\n";
     ss << "------------------------------------------\n";
     ss << "Compute distance weighted medial curve:\n";
-    ss << "$ ./skeltool -priority distance -curve -input data/dinosaur.tif -smooth 0.2 -fillholes -outputFolder results\n";
+    ss << "$ ./skeltool -priority distance -curve -input data/dinosaur.tif -smooth 0.2 -fillholes -anchor aof -outputFolder results\n";
     ss << "------------------------------------------\n";
     ss << "\n\n";
 

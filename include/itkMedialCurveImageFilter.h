@@ -116,13 +116,13 @@ namespace itk {
         void PrintSelf(std::ostream &os, Indent indent) const override;
         virtual bool IsEnd(IndexType index);
         virtual void Initialize();
+        OutputPointerType m_Skeleton;
 
     private:
         bool IsSimple(IndexType index);
         bool IsBoundary(IndexType index);
 
         OutputPointerType m_Queued;
-        OutputPointerType m_Skeleton;
         PriorityImagePointerType m_PriorityImage;
         bool m_RadiusWeightedSkeleton;
     };
