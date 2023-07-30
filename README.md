@@ -29,3 +29,8 @@ To compute (boundary distance weighted) medial curve for `dinosaur` sample image
 $ skeltools -priority distance -curve -input data/dinosaur.tif -smooth 0.2  -fillholes -outputFolder results
 ```
 If everything runs without errors you should see `dinosaur_distance_curve.tif` inside `results` folder.
+
+<figure style="display:block; margin: 0 auto; text-align: center; width:600px">
+<img alt="dinosaur-noanchor-unweighted" src="images/dino-medialcurve-unweighted-noanchor.png"/>
+<figcaption>Sample dinosaur object in translucent blue with reddish colored medial curve inside</figcaption>
+</figure>
