@@ -118,7 +118,13 @@ int approximateMedialSurface_impl(const itk::CommandLineArgumentParser::Pointer 
 
     // (Number of samples * 2)/pi = 40
     // threshold value = 0.4
-    thresholdFilter->SetLowerThreshold(-40*0.4);
+	double aofThresholdValue = 0.4;
+	if(parser->GetCommandLineArgument("-approximate", aofThresholdValue)){
+		logger->Info("Set AOF Threshold value to "+ std::to_string(aofThresholdValue) +"\n");
+	}else{
+		logger->Debug("Using default AOF Threshold : " + std::to_string(aofThresholdValue) + "\n");
+	}
+    thresholdFilter->SetLowerThreshold(-40*aofThresholdValue);
     thresholdFilter->SetUpperThreshold(std::numeric_limits<FluxValueType>::max());
     thresholdFilter->SetOutsideValue(1);
     thresholdFilter->SetInsideValue(0);
