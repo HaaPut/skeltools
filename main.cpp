@@ -72,7 +72,7 @@ std::string helpstring() {
     ss << "===========================================\n";
 
     ss << "\t\t Algorithms:\n";
-    ss << "\t\t\t -approximate T      :: Skeletons using thresholding AOF values\n";
+    ss << "\t\t\t -approximate [T]    :: Medial Surface by thresholding (@optional T {0.4}) AOF values\n";
     ss << "\t\t -useprecomputed       :: Use precomputed intermediate images\n";
     ss << "\t\t -writeIntermediate    :: Write intermediate images\n";
     ss << "\t\t -spacing x y..        :: size of image voxel\n";
