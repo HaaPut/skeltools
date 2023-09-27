@@ -124,7 +124,118 @@ namespace topology{
             {{1,  -1}},
             {{0,  -1}}
     };
+	//xy plane
+	std::vector<itk::Offset<3> > xyaplane = {
+		{{ 1, 0, 0}},
+		{{ 1, 1, 0}},
+		{{ 0, 1, 0}},
+		{{-1, 1, 0}},
+		{{-1, 0, 0}},
+		{{-1,-1, 0}},
+		{{ 0,-1, 0}},
+		{{ 1,-1, 0}}
+	};
+	//yz plane
+	std::vector<itk::Offset<3> > yzaplane = {
+		{{ 0, 1, 0}},
+		{{ 0, 1, 1}},
+		{{ 0, 0, 1}},
+		{{ 0,-1, 1}},
+		{{ 0,-1, 0}},
+		{{ 0,-1,-1}},
+		{{ 0, 0,-1}},
+		{{ 0, 1,-1}}
+	};
+	//xz plane
+	std::vector<itk::Offset<3> > xzaplane = {
+		{{ 1, 0, 0}},
+		{{ 1, 0, 1}},
+		{{ 0, 0, 1}},
+		{{-1, 0, 1}},
+		{{-1, 0, 0}},
+		{{-1, 0,-1}},
+		{{ 0, 0,-1}},
+		{{ 1, 0,-1}}
+	};
+	//xy diagonal plane
+	std::vector<itk::Offset<3> > xydplane = {
+		{{-1,-1, 1}},
+		{{ 0, 0, 1}},
+		{{ 1, 1, 1}},
+		{{ 1, 1, 0}},
+		{{ 1, 1,-1}},
+		{{ 0, 0,-1}},
+		{{-1,-1,-1}},
+		{{-1,-1, 0}}
+	};
+	//xy cross-diagonal plane
+	std::vector<itk::Offset<3> > xycplane = {
+		{{-1, 1, 1}},
+		{{ 0, 0, 1}},
+		{{ 1,-1, 1}},
+		{{ 1,-1, 0}},
+		{{ 1,-1,-1}},
+		{{ 0, 0,-1}},
+		{{-1, 1,-1}},
+		{{-1, 1, 0}}
+	};
+	//yz diagonal plane
+	std::vector<itk::Offset<3> > yzdplane = {
+		{{ 1,-1,-1}},
+		{{ 1, 0, 0}},
+		{{ 1, 1, 1}},
+		{{ 0, 1, 1}},
+		{{-1, 1, 1}},
+		{{-1, 0, 0}},
+		{{-1,-1,-1}},
+		{{ 0,-1,-1}}
+	};
+	//yz cross-diagonal plane
+	std::vector<itk::Offset<3> > yzcplane = {
+		{{ 1,-1, 1}},
+		{{ 1, 0, 0}},
+		{{ 1, 1,-1}},
+		{{ 0, 1,-1}},
+		{{-1, 1,-1}},
+		{{-1, 0, 0}},
+		{{-1,-1, 1}},
+		{{ 0,-1, 1}}
+	};
+	//xz diagonal plane
+	std::vector<itk::Offset<3> > xzdplane = {
+		{{-1, 1,-1}},
+		{{ 0, 1, 0}},
+		{{ 1, 1, 1}},
+		{{ 1, 0, 1}},
+		{{ 1,-1, 1}},
+		{{ 0,-1, 0}},
+		{{-1,-1,-1}},
+		{{-1, 0,-1}}
+	};
+	//xz cross-diagonal plane
+	std::vector<itk::Offset<3> > xzcplane = {
+		{{-1, 1, 1}},
+		{{ 0, 1, 0}},
+		{{ 1, 1,-1}},
+		{{ 1, 0,-1}},
+		{{ 1,-1,-1}},
+		{{ 0,-1, 0}},
+		{{-1,-1, 1}},
+		{{-1, 0, 1}}
+	};
 
+	std::vector< std::vector<itk::Offset<3> > > ninePlanes = {
+		xyaplane,
+		yzaplane,
+		xzaplane,
+		xydplane,
+		xycplane,
+		yzdplane,
+		yzcplane,
+		xzdplane,
+		xzcplane
+	};
+	//Gregoire Malandain et. al. 1993
 	ObjectPointType
     TopologicalLabel(unsigned Cbar, unsigned Cstar){
 

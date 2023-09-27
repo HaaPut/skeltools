@@ -73,8 +73,8 @@ std::string helpstring() {
 
     ss << "\t\t Algorithms:\n";
     ss << "\t\t\t -approximate [T]    :: Medial Surface by thresholding (@optional T {0.4}) AOF values\n";
-    ss << "\t\t -useprecomputed       :: Use precomputed intermediate images\n";
-    ss << "\t\t -writeIntermediate    :: Write intermediate images\n";
+    ss << "\t\t -useprecomputed       :: Use precomputed intermediate images for distance transform, AOF\n";
+    ss << "\t\t -writeIntermediate    :: Write intermediate distance transform, spoke field, AOF images\n";
     ss << "\t\t -spacing x y..        :: size of image voxel\n";
     ss << "\t\t -smooth V             :: (default 1 px) Variance of gaussian used for smoothing input image\n";
     ss << "\t\t -lthreshold           :: Lower threshold for generating binary object\n";

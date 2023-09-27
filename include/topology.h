@@ -33,6 +33,18 @@ namespace topology
     extern std::vector<bool> n6;
     extern std::vector<itk::Offset<2>> neighbors8;
 
+	extern std::vector<itk::Offset<3> > xyaplane;	//xy plane
+	extern std::vector<itk::Offset<3> > yzaplane;	//yz plane
+	extern std::vector<itk::Offset<3> > xzaplane;	//xz plane
+	extern std::vector<itk::Offset<3> > xydplane;	//xy diagonal plane
+	extern std::vector<itk::Offset<3> > xycplane;	//xy cross-diagonal plane
+	extern std::vector<itk::Offset<3> > yzdplane;	//yz diagonal plane
+	extern std::vector<itk::Offset<3> > yzcplane;	//yz cross-diagonal plane
+	extern std::vector<itk::Offset<3> > xzdplane;	//xz diagonal plane
+	extern std::vector<itk::Offset<3> > xzcplane;	//xz cross-diagonal plane
+
+	extern std::vector< std::vector<itk::Offset<3> > > ninePlanes;
+
     enum class ObjectPointType{
         Interior = 2, //interior point
         Isoloated = 3, //isolated point
@@ -62,6 +74,9 @@ namespace topology
 
     template< class TImage>
     bool IsBoundaryPoint(typename TImage::Pointer image,typename TImage::IndexType index);
+
+	template< class TImage>
+    bool IsEdgePoint(typename TImage::Pointer image,typename TImage::IndexType index);
 
     template<class TImage>
     bool IsSimplePoint(typename TImage::Pointer image,typename TImage::IndexType index);

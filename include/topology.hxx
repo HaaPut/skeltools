@@ -20,6 +20,7 @@
 #define SKELTOOLS_TOPOLOGY_HXX
 
 #include <itkNeighborhoodIterator.h>
+#include <itkShapedNeighborhoodIterator.h>
 #include <itkNeighborhood.h>
 
 namespace topology
@@ -135,7 +136,44 @@ namespace topology
         }
         return IsBoundaryPixel;
     }
-    template<class TImage>
+
+	template< class TImage>
+    bool IsEdgePoint(typename TImage::Pointer image,typename TImage::IndexType index) {
+		bool IsEdgePoint = false;
+        using BoundaryConditionType = itk::ConstantBoundaryCondition<TImage>;
+        using OutputNeighborhoodIteratorType = itk::ShapedNeighborhoodIterator<TImage, BoundaryConditionType>;
+        typename OutputNeighborhoodIteratorType::RadiusType radius;
+        radius.Fill(1);
+        OutputNeighborhoodIteratorType nit(radius, image, image->GetLargestPossibleRegion());
+		typename OutputNeighborhoodIteratorType::Iterator it;
+
+        BoundaryConditionType cbc;
+        nit.OverrideBoundaryCondition(&cbc);
+
+        nit.SetLocation(index);
+
+		for (auto& plane: ninePlanes){
+			for (auto point: plane) nit.ActivateOffset(point);
+
+			int nbrCount = 0;
+			for(it = nit.Begin(); !it.IsAtEnd(); ++it){
+				if(it.Get() > 0){
+					++nbrCount;
+				}
+			}
+			if (nbrCount < 2){
+				IsEdgePoint = true;
+				break;
+			}
+
+			for (auto point: plane) nit.DeactivateOffset(point);
+		}
+
+        return IsEdgePoint;
+    }
+
+
+	template<class TImage>
     bool IsSimplePoint(typename TImage::Pointer image,typename TImage::IndexType index){
         auto cbar = computeCbar<TImage>(image, index);
         auto cstar = computeCstar<TImage>(image, index);
