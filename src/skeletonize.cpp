@@ -87,6 +87,13 @@ computeAOFAnchoredMedialCurve(typename ObjectImageType::Pointer objectImage,
 
     medialCurveFilter->SetAOFThreshold(threshold);
 
+	if(parser->ArgumentExists("-quick")){
+		medialCurveFilter->SetQuick(true);
+		logger->Info("Using quick mode: discarding all non-negative AOF point in initialization\n");
+	}else{
+		medialCurveFilter->SetQuick(false);
+		logger->Debug("Using default mode: initializing with all interior points");
+	}
     medialCurveFilter->Update();
     auto medialCurve = medialCurveFilter->GetOutput();
 

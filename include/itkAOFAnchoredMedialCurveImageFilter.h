@@ -54,10 +54,20 @@ namespace itk {
         itkTypeMacro(AOFAnchoredMedialCurveImageFilter, ImageToImageFilter);
 
         using IndexType = typename TOutputImage::IndexType;
+        using InputPointerType = typename TInputImage::ConstPointer;
+
+        using PixelType = typename TInputImage::PixelType;
+        using OutputIteratorType = ImageRegionIterator<TOutputImage>;
 
         using AOFValueType = float;
         using AOFImageType = Image<AOFValueType, Dimension>;
         using AOFImagePointerType = typename AOFImageType::Pointer;
+        using AOFImageConstIteratorType = ImageRegionConstIterator<AOFImageType>;
+
+		using PriorityValueType = float;
+        using PriorityImageType = Image<PriorityValueType, Dimension>;
+        using PriorityImagePointerType = typename PriorityImageType::Pointer;
+        using PriorityImageConstIteratorType = ImageRegionConstIterator<PriorityImageType>;
 
 
         void SetAOFImage(AOFImagePointerType aofImage){
@@ -70,13 +80,18 @@ namespace itk {
         itkSetMacro(AOFThreshold, AOFValueType);
         itkGetConstMacro(AOFThreshold, AOFValueType);
 
+		itkSetMacro(Quick, bool);
+        itkGetConstMacro(Quick, bool);
+
     protected:
         AOFAnchoredMedialCurveImageFilter();
         ~AOFAnchoredMedialCurveImageFilter() = default;
 
+		void Initialize() override;
         void PrintSelf(std::ostream &os, Indent indent) const override;
         bool IsEnd(IndexType index) override;
 
+		bool m_Quick;
     private:
 
         AOFImagePointerType m_AOF;

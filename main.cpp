@@ -79,6 +79,7 @@ std::string helpstring() {
     ss << "\t\t -smooth V             :: (default 1 px) Variance of gaussian used for smoothing input image\n";
     ss << "\t\t -lthreshold           :: Lower threshold for generating binary object\n";
     ss << "\t\t -uthreshold           :: Upper threshold for generating binary object\n";
+	ss << "\t\t -quick                :: Use quick mode, discarding all non-negative AOF points during initialization\n";
 
     //------------------------------------------------------------------------
     ss << "Priority Options:: \n";
