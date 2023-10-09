@@ -17,85 +17,46 @@
 // Created by tabish on 2023-07-30.
 //
 
-#ifndef SKELTOOLS_itkAnchoredMedialCurveImageFilter_h
-#define SKELTOOLS_itkAnchoredMedialCurveImageFilter_h
+#ifndef SKELTOOLS_itkAOFAnchoredMedialCurveImageFilter_h
+#define SKELTOOLS_itkAOFAnchoredMedialCurveImageFilter_h
 
 #include <queue>
 
-#include "itkMedialCurveImageFilter.h"
-
-#include <itkImageToImageFilter.h>
-#include <itkImageRegionConstIterator.h>
-#include <itkImageRegionIterator.h>
-#include <itkNeighborhoodIterator.h>
-#include <itkDanielssonDistanceMapImageFilter.h>
-#include <itkConstantBoundaryCondition.h>
+#include "itkAOFAnchoredSkeletonImageFilterBase.h"
 
 namespace itk {
     /// 1. manual instantation
     template<class TInputImage,
             class TOutputImage = TInputImage>
     class ITK_TEMPLATE_EXPORT  AOFAnchoredMedialCurveImageFilter :
-            public MedialCurveImageFilter<TInputImage, TOutputImage> {
+            public AOFAnchoredSkeletonImageFilterBase<TInputImage, TOutputImage> {
     public:
         /** Standard class typedefs. */
         using Self = AOFAnchoredMedialCurveImageFilter;
-        using Superclass = ImageToImageFilter<TInputImage, TOutputImage>;
+        using Superclass = AOFAnchoredSkeletonImageFilterBase<TInputImage, TOutputImage>;
         using Pointer = SmartPointer<Self>;
         using ConstPointer = SmartPointer<const Self>;
 
         static constexpr unsigned Dimension = TInputImage::ImageDimension;
 
-
         /** Method for creation through the object factory */
         itkNewMacro(Self);
 
         /** Run-time type information (and related methods). */
-        itkTypeMacro(AOFAnchoredMedialCurveImageFilter, ImageToImageFilter);
+        itkTypeMacro(AOFAnchoredMedialCurveImageFilter, AOFAnchoredSkeletonImageFilterBase);
 
         using IndexType = typename TOutputImage::IndexType;
-        using InputPointerType = typename TInputImage::ConstPointer;
-
-        using PixelType = typename TInputImage::PixelType;
-        using OutputIteratorType = ImageRegionIterator<TOutputImage>;
-
-        using AOFValueType = float;
-        using AOFImageType = Image<AOFValueType, Dimension>;
-        using AOFImagePointerType = typename AOFImageType::Pointer;
-        using AOFImageConstIteratorType = ImageRegionConstIterator<AOFImageType>;
-
-		using PriorityValueType = float;
-        using PriorityImageType = Image<PriorityValueType, Dimension>;
-        using PriorityImagePointerType = typename PriorityImageType::Pointer;
-        using PriorityImageConstIteratorType = ImageRegionConstIterator<PriorityImageType>;
-
-
-        void SetAOFImage(AOFImagePointerType aofImage){
-            m_AOF = aofImage;
-        }
-        AOFImagePointerType GetAOFImage(){
-            return m_AOF;
-        }
-
-        itkSetMacro(AOFThreshold, AOFValueType);
-        itkGetConstMacro(AOFThreshold, AOFValueType);
-
-		itkSetMacro(Quick, bool);
-        itkGetConstMacro(Quick, bool);
 
     protected:
-        AOFAnchoredMedialCurveImageFilter();
+        AOFAnchoredMedialCurveImageFilter() = default;
         ~AOFAnchoredMedialCurveImageFilter() = default;
 
-		void Initialize() override;
-        void PrintSelf(std::ostream &os, Indent indent) const override;
         bool IsEnd(IndexType index) override;
+        bool IsSimple(IndexType index) override;
+        bool IsBoundary(IndexType index) override;
 
-		bool m_Quick;
-    private:
+		void PrintSelf(std::ostream &os, Indent indent) const override;
 
-        AOFImagePointerType m_AOF;
-        AOFValueType m_AOFThreshold;
     };
 
 

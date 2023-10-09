@@ -24,86 +24,19 @@
 
 namespace itk {
     template<class TInputImage, class TOutputImage>
-    AOFAnchoredMedialCurveImageFilter<TInputImage, TOutputImage>::AOFAnchoredMedialCurveImageFilter() {
-        m_AOFThreshold = -30.0;
-        m_AOF = nullptr;
-		m_Quick = false;
+    bool
+    AOFAnchoredMedialCurveImageFilter<TInputImage, TOutputImage>::IsSimple(IndexType index) {
+        return ::topology::IsSimplePoint<TOutputImage>(this->m_Skeleton, index);
     }
-
 
     template<class TInputImage, class TOutputImage>
     bool AOFAnchoredMedialCurveImageFilter<TInputImage, TOutputImage>::IsEnd(IndexType index) {
-        return ::topology::IsEndPoint<TOutputImage>(this->m_Skeleton, index) && m_AOF->GetPixel(index) < m_AOFThreshold;
+        return ::topology::IsEndPoint<TOutputImage>(this->m_Skeleton, index) && this->m_AOF->GetPixel(index) < this->m_AOFThreshold;
     }
 
     template<class TInputImage, class TOutputImage>
-    void
-    AOFAnchoredMedialCurveImageFilter<TInputImage, TOutputImage>::Initialize() {
-        InputPointerType input = this->GetInput();
-
-        using BinaryImageGeneratorType = BinaryThresholdImageFilter<TInputImage, TInputImage>;
-        typename BinaryImageGeneratorType::Pointer binaryImageGenerator = BinaryImageGeneratorType::New();
-        binaryImageGenerator->SetInput(input);
-        binaryImageGenerator->SetLowerThreshold(NumericTraits<PixelType>::OneValue());
-        binaryImageGenerator->SetUpperThreshold(NumericTraits<PixelType>::max());
-        binaryImageGenerator->SetOutsideValue(NumericTraits<PixelType>::OneValue());
-        binaryImageGenerator->SetInsideValue(NumericTraits<PixelType>::ZeroValue());
-        binaryImageGenerator->Update();
-        auto binaryInput = binaryImageGenerator->GetOutput();
-        PriorityImagePointerType distanceImage = nullptr;
-
-        if(this->m_PriorityImage == nullptr) {
-            using PriorityFilterType = DanielssonDistanceMapImageFilter<TInputImage, PriorityImageType>;
-            auto priorityFilter = PriorityFilterType::New();
-            priorityFilter->SetInput(binaryInput);
-            priorityFilter->UseImageSpacingOn();
-            priorityFilter->Update();
-            this->m_PriorityImage = priorityFilter->GetOutput();
-            this->m_PriorityImage->ReleaseDataFlagOff();
-            distanceImage = this->m_PriorityImage;
-        }else{
-            auto distanceFilter = DanielssonDistanceMapImageFilter<TInputImage, PriorityImageType>::New();
-            distanceFilter->SetInput(binaryInput);
-            distanceFilter->UseImageSpacingOn();
-            distanceFilter->Update();
-            distanceImage = distanceFilter->GetOutput();
-        }
-        assert(distanceImage != nullptr && "Distance image cannot be nullptr\n");
-
-        this->m_Skeleton = this->GetOutput();
-        this->AllocateOutputs();
-
-        this->m_Queued = TOutputImage::New();
-        this->m_Queued->SetSpacing(this->m_PriorityImage->GetSpacing());
-        this->m_Queued->SetOrigin(this->m_PriorityImage->GetOrigin());
-        this->m_Queued->SetRegions(this->m_PriorityImage->GetRequestedRegion());
-        this->m_Queued->Allocate();
-
-        OutputIteratorType skit(this->m_Skeleton, this->m_Skeleton->GetLargestPossibleRegion());
-        PriorityImageConstIteratorType dIt(distanceImage, distanceImage->GetLargestPossibleRegion() );
-		AOFImageConstIteratorType aofIt(m_AOF, m_AOF->GetLargestPossibleRegion() );
-
-		aofIt.GoToBegin();
-        dIt.GoToBegin();
-        skit.GoToBegin();
-        while (!skit.IsAtEnd()) {
-            PriorityValueType value = dIt.Get();
-            if(value > 0 ){
-				if(!m_Quick ||
-				   (m_Quick && aofIt.Get() < 0)) {
-					if(this->m_RadiusWeightedSkeleton) {
-						skit.Set(value);
-					}else{
-						skit.Set(1);
-					}
-				}
-            }else{
-                skit.Set(0);
-            }
-            ++dIt;
-            ++skit;
-			++aofIt;
-        }
+    bool AOFAnchoredMedialCurveImageFilter<TInputImage, TOutputImage>::IsBoundary(IndexType index) {
+        return ::topology::IsBoundaryPoint<TOutputImage>(this->m_Skeleton, index);
     }
 
 /**

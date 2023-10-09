@@ -21,24 +21,18 @@
 #define SKELTOOLS_itkMedialCurveImageFilter_h
 
 #include <queue>
-
-#include <itkImageToImageFilter.h>
-#include <itkImageRegionConstIterator.h>
-#include <itkImageRegionIterator.h>
-#include <itkNeighborhoodIterator.h>
-#include <itkDanielssonDistanceMapImageFilter.h>
-#include <itkConstantBoundaryCondition.h>
+#include "itkOrderedSkeletonizationImageFilterBase.h"
 
 namespace itk {
     /// 1. manual instantation
     template<class TInputImage,
             class TOutputImage = TInputImage>
     class ITK_TEMPLATE_EXPORT  MedialCurveImageFilter :
-            public ImageToImageFilter<TInputImage, TOutputImage> {
+            public OrderedSkeletonizationImageFilterBase<TInputImage, TOutputImage> {
     public:
         /** Standard class typedefs. */
         using Self = MedialCurveImageFilter;
-        using Superclass = ImageToImageFilter<TInputImage, TOutputImage>;
+        using Superclass = OrderedSkeletonizationImageFilterBase<TInputImage, TOutputImage>;
         using Pointer = SmartPointer<Self>;
         using ConstPointer = SmartPointer<const Self>;
 
@@ -49,82 +43,24 @@ namespace itk {
         itkNewMacro(Self);
 
         /** Run-time type information (and related methods). */
-        itkTypeMacro(MedialCurveImageFilter, ImageToImageFilter);
+		itkTypeMacro(MedialCurveImageFilter, OrderedSkeletonizationImageFilterBase);
 
-        using InputPointerType = typename TInputImage::ConstPointer;
-        using OutputPointerType = typename TOutputImage::Pointer;
-        using OutputPixelType = typename TOutputImage::PixelType;
-
-        using BoundaryConditionType = ConstantBoundaryCondition<TOutputImage>;
-        using OutputIteratorType = ImageRegionIterator<TOutputImage>;
-        using InputConstIteratorType = ImageRegionConstIterator<TInputImage>;
-        using OutputNeighborhoodIteratorType = itk::NeighborhoodIterator<TOutputImage, BoundaryConditionType>;
         using IndexType = typename TOutputImage::IndexType;
-        using SizeType = typename TOutputImage::SizeType;
-        using RegionType = ImageRegion<Dimension>;
-        using PixelType = typename TInputImage::PixelType;
-
-
-        using PriorityValueType = float;
-        using PriorityImageType = Image<PriorityValueType, Dimension>;
-        using PriorityImagePointerType = typename PriorityImageType::Pointer;
-        using PriorityImageConstIteratorType = ImageRegionConstIterator<PriorityImageType>;
-        using PriorityNeighborhoodIteratorType = itk::NeighborhoodIterator<PriorityImageType>;
-        typedef
-        struct Pixel {
-        private:
-            IndexType pixelIndex;
-            PriorityValueType priority;
-
-        public:
-            PriorityValueType GetPriority() const { return priority; };
-
-            void SetIndex(IndexType p) { pixelIndex = p; };
-
-            void SetValue(PriorityValueType v) { priority = v; };
-
-            IndexType GetIndex() { return pixelIndex; };
-
-            PriorityValueType GetValue() { return priority; };
-        } Pixel;
-
-        struct Greater : public std::binary_function<Pixel, Pixel, bool> {
-        public:
-            bool operator()(const Pixel &p1, const Pixel &p2) const {
-                return p1.GetPriority() > p2.GetPriority();
-            }
-        };
-
-        using HeapContainer = std::vector<Pixel>;
-        using HeapType = std::priority_queue<Pixel, HeapContainer, Greater>;
-
-        void SetPriorityImage(PriorityImagePointerType priorityImage){
-            m_PriorityImage = priorityImage;
-        }
-        PriorityImagePointerType GetPriorityImage(){
-            return m_PriorityImage;
-        }
 
         itkSetMacro(RadiusWeightedSkeleton,bool);
         itkGetConstMacro(RadiusWeightedSkeleton, bool);
 
     protected:
-        MedialCurveImageFilter();
+        MedialCurveImageFilter() = default;
         ~MedialCurveImageFilter() = default;
 
-        void GenerateData() override;
+
         void PrintSelf(std::ostream &os, Indent indent) const override;
-        virtual bool IsEnd(IndexType index);
-        virtual void Initialize();
-        OutputPointerType m_Skeleton;
 
-    private:
-        bool IsSimple(IndexType index);
-        bool IsBoundary(IndexType index);
+        bool IsEnd(IndexType index) override;
+        bool IsSimple(IndexType index) override;
+        bool IsBoundary(IndexType index) override;
 
-        OutputPointerType m_Queued;
-        PriorityImagePointerType m_PriorityImage;
-        bool m_RadiusWeightedSkeleton;
     };
 
 
