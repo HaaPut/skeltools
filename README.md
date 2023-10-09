@@ -34,3 +34,15 @@ If everything runs without errors you should see `dinosaur_distance_curve.tif` i
 <img alt="dinosaur-noanchor-unweighted" src="images/dino-medialcurve-unweighted-noanchor.png"/>
 <figcaption>Sample dinosaur object in translucent blue with reddish colored medial curve inside</figcaption>
 </figure>
+
+# Computing Object medial surface
+To compute medial surface for `dinosaur` sample image run
+```bash
+$ skeltools -priority distance -surface -input data/dinosaur.tif -smooth 0.1  -fillholes -output results/dino_surface.tif
+```
+The output of the above command should be the medial surface `dino_surface.tif` inside the `results` folder.
+<figure style="display:block; margin: 0 auto; text-align: center; width:600px">
+<img alt="dinosaur-aofanchor-unweighted-surface" src="images/dino-medialsurface-unweighted-aofanchor.png"/>
+<figcaption>Sample dinosaur object in translucent blue with reddish colored medial surface inside</figcaption>
+</figure>
+
