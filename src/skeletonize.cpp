@@ -34,6 +34,8 @@
 #include "experiment.h"
 #include "itkMedialCurveImageFilter.h"
 #include "itkAOFAnchoredMedialCurveImageFilter.h"
+#include "itkMedialSurfaceImageFilter.h"
+#include "itkAOFAnchoredMedialSurfaceImageFilter.h"
 #include "itkSpokeFieldToAverageOutwardFluxImageFilter.h"
 
 
@@ -42,7 +44,7 @@ static void
 computeAOFAnchoredMedialCurve(typename ObjectImageType::Pointer objectImage,
                    itk::CommandLineArgumentParser::Pointer parser,
                    itk::Logger::Pointer logger){
-    logger->Debug("Starting AOF computation for priority\n");
+    logger->Debug("Starting AOF computation for Anchored medial curve\n");
     constexpr unsigned Dimension = ObjectImageType::ImageDimension;
     using DistanceImageType = itk::Image<float, Dimension>;
     using SpokeFieldImageType = typename itk::Image<itk::Vector < float, Dimension>, Dimension > ;
@@ -131,6 +133,103 @@ computeMedialCurve(typename ObjectImageType::Pointer objectImage,
 
     writeImage<OutputImageType>(outputFileName, medialCurve, logger);
 }
+
+
+template<typename ObjectImageType, typename OutputImageType>
+static void
+computeAOFAnchoredMedialSurface(typename ObjectImageType::Pointer objectImage,
+                   itk::CommandLineArgumentParser::Pointer parser,
+                   itk::Logger::Pointer logger){
+    logger->Debug("Starting AOF computation for anchored medial surface\n");
+    constexpr unsigned Dimension = ObjectImageType::ImageDimension;
+    using DistanceImageType = itk::Image<float, Dimension>;
+    using SpokeFieldImageType = typename itk::Image<itk::Vector < float, Dimension>, Dimension > ;
+
+    auto distClosestPointPair =
+            computeObjectSignedDistanceSpokesPair<ObjectImageType, DistanceImageType>(parser, logger);
+    auto spokeField = distClosestPointPair.second;
+
+    using AOFFilterType = itk::SpokeFieldToAverageOutwardFluxImageFilter<SpokeFieldImageType, float>;
+    typename AOFFilterType::Pointer aofFilter = AOFFilterType::New();
+    aofFilter->SetInput(spokeField);
+    aofFilter->Update();
+
+    using MedialSurfaceFilterType = itk::AOFAnchoredMedialSurfaceImageFilter<ObjectImageType, OutputImageType>;
+    typename MedialSurfaceFilterType::Pointer medialSurfaceFilter = MedialSurfaceFilterType::New();
+    medialSurfaceFilter->SetInput(objectImage);
+
+    medialSurfaceFilter->SetAOFImage(aofFilter->GetOutput());
+
+    std::string priorityType;
+    parser->GetCommandLineArgument("-priority", priorityType);
+    if (priorityType == "distance") {
+        using ScaleFilterType = itk::MultiplyImageFilter<DistanceImageType, DistanceImageType, DistanceImageType>;
+        auto inverter = ScaleFilterType::New();
+        inverter->SetInput(distClosestPointPair.first);
+        inverter->SetConstant(-1);
+        inverter->Update();
+        medialSurfaceFilter->SetPriorityImage(inverter->GetOutput());//distClosestPointPair.first);
+    }
+    if(parser->ArgumentExists("-weighted")){
+        medialSurfaceFilter->SetRadiusWeightedSkeleton(true);
+    }else{
+        medialSurfaceFilter->SetRadiusWeightedSkeleton(false);
+    }
+
+    float threshold = -10;
+    if(parser->GetCommandLineArgument("-threshold",threshold)){
+        logger->Info("Set End point threshold = " + std::to_string(threshold) + "\n");
+    }else{
+        logger->Debug("Set End point threshold to default " + std::to_string(threshold) + "\n");
+    }
+
+    medialSurfaceFilter->SetAOFThreshold(threshold);
+
+	if(parser->ArgumentExists("-slow")){
+		medialSurfaceFilter->SetQuick(false);
+		logger->Info("Using non-quick mode: Using all interior points for skeleton initialization\n");
+	}else{
+		medialSurfaceFilter->SetQuick(true);
+		logger->Debug("Using default quick mode: discarding all non-negative AOF point in initialization\n");
+	}
+    medialSurfaceFilter->Update();
+    auto medialSurface = medialSurfaceFilter->GetOutput();
+
+    std::string outputFileName;
+    parser->GetCommandLineArgument("-output", outputFileName);
+
+    writeImage<OutputImageType>(outputFileName, medialSurface, logger);
+}
+
+
+template<typename ObjectImageType, typename OutputImageType>
+static void
+computeMedialSurface(typename ObjectImageType::Pointer objectImage,
+                   itk::CommandLineArgumentParser::Pointer parser,
+                   itk::Logger::Pointer logger){
+    using MedialSurfaceFilterType = itk::MedialSurfaceImageFilter<ObjectImageType, OutputImageType>;
+    typename MedialSurfaceFilterType::Pointer medialSurfaceFilter = MedialSurfaceFilterType::New();
+    medialSurfaceFilter->SetInput(objectImage);
+
+    std::string priorityType;
+    parser->GetCommandLineArgument("-priority", priorityType);
+    if (priorityType == "distance") {
+        medialSurfaceFilter->SetPriorityImage(nullptr);
+    }
+    if(parser->ArgumentExists("-weighted")){
+        medialSurfaceFilter->SetRadiusWeightedSkeleton(true);
+    }else{
+        medialSurfaceFilter->SetRadiusWeightedSkeleton(false);
+    }
+    medialSurfaceFilter->Update();
+    auto medialSurface = medialSurfaceFilter->GetOutput();
+
+    std::string outputFileName;
+    parser->GetCommandLineArgument("-output", outputFileName);
+
+    writeImage<OutputImageType>(outputFileName, medialSurface, logger);
+}
+
 
 template <typename InputPixelType, unsigned int Dimension>
 int skeletonize_impl(const itk::CommandLineArgumentParser::Pointer &parser,
@@ -242,21 +341,41 @@ int skeletonize_impl(const itk::CommandLineArgumentParser::Pointer &parser,
     parser->GetCommandLineArgument("-anchor", anchorType);
     if (anchorType == "aof") {
         if (parser->ArgumentExists("-weighted")) {
-            logger->Info("Running radius weighted AOF Anchored medial curve\n");
-            computeAOFAnchoredMedialCurve<ObjectImageType, FloatImageType>(objectImage, parser, logger);
+			if (parser->ArgumentExists("-surface")){
+				logger->Info("Running radius weighted AOF Anchored medial surface\n");
+				computeAOFAnchoredMedialSurface<ObjectImageType, FloatImageType>(objectImage, parser, logger);
+			}else{
+				logger->Info("Running radius weighted AOF Anchored medial curve\n");
+				computeAOFAnchoredMedialCurve<ObjectImageType, FloatImageType>(objectImage, parser, logger);
+			}
         } else {
-            logger->Info("Running unweighted AOF Anchored medial curve\n");
-            computeAOFAnchoredMedialCurve<ObjectImageType, ObjectImageType>(objectImage, parser, logger);
+			if(parser->ArgumentExists("-curve")){
+				logger->Info("Running unweighted AOF Anchored medial curve\n");
+				computeAOFAnchoredMedialCurve<ObjectImageType, ObjectImageType>(objectImage, parser, logger);
+			}else{
+				logger->Info("Running unweighted AOF Anchored medial surface\n");
+				computeAOFAnchoredMedialSurface<ObjectImageType, ObjectImageType>(objectImage, parser, logger);
+			}
         }
 
     }
     else {
         if (parser->ArgumentExists("-weighted")) {
-            logger->Info("Running radius weighted medial curve\n");
-            computeMedialCurve<ObjectImageType, FloatImageType>(objectImage, parser, logger);
+			if(parser->ArgumentExists("-surface")){
+				logger->Info("Running radius weighted medial surface\n");
+				computeMedialSurface<ObjectImageType, FloatImageType>(objectImage, parser, logger);
+			}else{
+				logger->Info("Running radius weighted medial curve\n");
+				computeMedialCurve<ObjectImageType, FloatImageType>(objectImage, parser, logger);
+			}
         } else {
-            logger->Info("Running unweighted medial curve\n");
-            computeMedialCurve<ObjectImageType, ObjectImageType>(objectImage, parser, logger);
+			if(parser->ArgumentExists("-surface")){
+				logger->Info("Running unweighted medial surface\n");
+				computeMedialCurve<ObjectImageType, ObjectImageType>(objectImage, parser, logger);
+			}else{
+				logger->Info("Running unweighted medial curve\n");
+				computeMedialSurface<ObjectImageType, ObjectImageType>(objectImage, parser, logger);
+			}
         }
     }
     return EXIT_SUCCESS;
@@ -380,47 +499,41 @@ int skeletonize(const itk::CommandLineArgumentParser::Pointer &parser,
 
 
 
-    if(parser->ArgumentExists("-curve")) {
-        logger->Info("Running Medial Curve computation\n");
-        // Set output filename
-        if (!hasOutputFilePath) {
-            outputFilePath = outputFolderPath/(inputFilePath.stem().string() +
-                                               "_" + priorityType +
-                                               "_curve" +
-                                               inputFilePath.extension().string());
-            std::vector<std::string> newargs;
-            newargs.push_back("-output");
-            newargs.push_back(outputFilePath.string());
-            parser->AddCommandLineArguments(newargs);
-            logger->Debug("Output Filename Set to: " + outputFilePath.string() + "\n");
-        }else{
-            outputFilePath = outputFileName;
-            logger->Debug("Set Output Filename to " + outputFilePath.string() + "\n");
-        }
-        switch (dimensions) {
-            //case 2:
-            case 3:
-                switch (componentType) {
-                    case itk::ImageIOBase::UCHAR:
-                        return skeletonize_impl<unsigned char, 3>(parser, logger);
-                    case itk::ImageIOBase::USHORT:
-                        return skeletonize_impl<unsigned short, 3>(parser, logger);
-                    case itk::ImageIOBase::FLOAT:
-                        return skeletonize_impl<float, 3>(parser, logger);
-                    case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
-                    default:
-                        logger->Critical("Unknown ComponentType :: " +
-                                         std::string(typeid(componentType).name()) +
-                                         " in 3 dimensions\n");
-                }
-                break;
-            default:
-                logger->Critical("File not supported..\n");
-        }
-    }else{
-        logger->Warning("Unknown priority weighted Skeletonization algorithm\n");
-        logger->Info("Available Algorithms include: \n"
-                     " \t-curve\n");
-    }
+	logger->Info("Running Medial Skeleton computation\n");
+	// Set output filename
+	if (!hasOutputFilePath) {
+		outputFilePath = outputFolderPath/(inputFilePath.stem().string() +
+										   "_" + priorityType +
+										   "_skeleton" +
+										   inputFilePath.extension().string());
+		std::vector<std::string> newargs;
+		newargs.push_back("-output");
+		newargs.push_back(outputFilePath.string());
+		parser->AddCommandLineArguments(newargs);
+		logger->Debug("Output Filename Set to: " + outputFilePath.string() + "\n");
+	}else{
+		outputFilePath = outputFileName;
+		logger->Debug("Set Output Filename to " + outputFilePath.string() + "\n");
+	}
+	switch (dimensions) {
+		//case 2:
+	case 3:
+		switch (componentType) {
+		case itk::ImageIOBase::UCHAR:
+			return skeletonize_impl<unsigned char, 3>(parser, logger);
+		case itk::ImageIOBase::USHORT:
+			return skeletonize_impl<unsigned short, 3>(parser, logger);
+		case itk::ImageIOBase::FLOAT:
+			return skeletonize_impl<float, 3>(parser, logger);
+		case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
+		default:
+			logger->Critical("Unknown ComponentType :: " +
+							 std::string(typeid(componentType).name()) +
+							 " in 3 dimensions\n");
+		}
+		break;
+	default:
+		logger->Critical("File not supported..\n");
+	}
     return EXIT_FAILURE;
 }

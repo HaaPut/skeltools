@@ -32,8 +32,8 @@ message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(DEBUG_CXX_FLAGS "-ggdb;-O0;-Wall;-m64;-fPIC;-std=c++17")
-set(RELEASE_CXX_FLAGS "-O3;-Wall;-m64;-fPIC;-std=c++17")
+set(DEBUG_CXX_FLAGS "-ggdb;-O1;-Wall;-Wextra;-march=native;-fPIC")
+set(RELEASE_CXX_FLAGS "-O3;-Wall;-march=native;-fPIC;-ffast-math")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 

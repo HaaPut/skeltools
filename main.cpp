@@ -84,7 +84,7 @@ std::string helpstring() {
     //------------------------------------------------------------------------
     ss << "Priority Options:: \n";
     ss << "===========================================\n";
-    ss << "\t\t -curve                :: medial curve algorithm\n";
+    ss << "\t\t -curve / -surface     :: medial curve/surface algorithm\n";
     ss << "\t\t -fillholes            :: fill object holes before skeletonization\n";
     ss << "\t\t -weighted             :: radius weighted skeleton\n";
     ss << "\t\t -spacing x y..        :: size of image voxel\n";
@@ -92,7 +92,7 @@ std::string helpstring() {
     ss << "\t\t -lthreshold           :: Lower threshold for generating binary object\n";
     ss << "\t\t -uthreshold           :: Upper threshold for generating binary object\n";
     ss << "\t\t -anchor [aof,""]      :: (optional, default none)use anchored end points\n";
-
+	ss << "\t\t -threshold T          :: (optional default -30(-10) for medial curve(surface)) threshold value for aof anchor \n";
     //------------------------------------------------------------------------
 
     ss << "\n\n";
@@ -105,7 +105,10 @@ std::string helpstring() {
     ss << "$ ./skeltool -aof -approximate  -input data/dinosaur.tif -smooth 0.5 -useprecomputed -writeIntermediate -outputFolder results\n";
     ss << "------------------------------------------\n";
     ss << "Compute distance weighted medial curve:\n";
-    ss << "$ ./skeltool -priority distance -curve -input data/dinosaur.tif -smooth 0.2 -fillholes -anchor aof -outputFolder results\n";
+    ss << "$ ./skeltool -priority distance -curve -input data/dinosaur.tif -smooth 0.1 -fillholes -anchor aof -outputFolder results\n";
+    ss << "------------------------------------------\n";
+    ss << "Compute distance weighted medial surface:\n";
+    ss << "$ ./skeltool -priority distance -surface -input data/dinosaur.tif -smooth 0.1 -fillholes -anchor aof -output results/dino_surface.tif\n";
     ss << "------------------------------------------\n";
     ss << "\n\n";
 
