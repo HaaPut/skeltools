@@ -16,3 +16,7 @@ add_executable(homotopic-centerline)
 target_sources(homotopic-centerline PRIVATE  "homotopic-centerlines.cpp")
 target_link_libraries(homotopic-centerline PRIVATE skel ${ITK_LIBRARIES})
 
+add_executable(map-thickness)
+target_sources(map-thickness PRIVATE  "map-medial-thickness-to-boundary.cpp")
+target_link_libraries(map-thickness PRIVATE skel ${ITK_LIBRARIES})
+

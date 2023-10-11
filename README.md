@@ -23,7 +23,7 @@ $ make -j2
 ```
 If all goes well you should now have `skeltools` executable insed the build folder.
 
-# Computing Object Centerline.
+# Computing object centerline.
 To compute (boundary distance weighted) medial curve for `dinosaur` sample image run
 ```bash
 $ skeltools -priority distance -curve -input data/dinosaur.tif -smooth 0.2  -fillholes -outputFolder results
@@ -35,7 +35,7 @@ If everything runs without errors you should see `dinosaur_distance_curve.tif` i
 <figcaption>Sample dinosaur object in translucent blue with reddish colored medial curve inside</figcaption>
 </figure>
 
-# Computing Object medial surface
+# Computing object medial surface
 To compute medial surface for `dinosaur` sample image run
 ```bash
 $ skeltools -priority distance -surface -input data/dinosaur.tif -smooth 0.1  -fillholes -output results/dino_surface.tif
@@ -44,5 +44,14 @@ The output of the above command should be the medial surface `dino_surface.tif` 
 <figure style="display:block; margin: 0 auto; text-align: center; width:600px">
 <img alt="dinosaur-aofanchor-unweighted-surface" src="images/dino-medialsurface-unweighted-aofanchor.png"/>
 <figcaption>Sample dinosaur object in translucent blue with reddish colored medial surface inside</figcaption>
+</figure>
+
+# Mapping object thickness to object boundary
+`MapToBoundaryImageFilter` can be used to map features (for example object width) from medial surface to the object boundary. Example 
+`map-medial-thickness-to-boundary.cpp` computes object width weighted medial skeleton of `dinosaur.tif' and maps it back to 
+the boundary.
+<figure style="display:block; margin: 0 auto; text-align: center; width:600px">
+<img alt="dinosaur-mapped-object-width" src="images/dino-boundary-mapped-thickness.png"/>
+<figcaption>Visualization of object thickness to object boundary for dinosaur sample image</figcaption>
 </figure>
 
