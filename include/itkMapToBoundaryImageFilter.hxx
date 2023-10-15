@@ -20,9 +20,6 @@
 #define SKELTOOLS_itkMapToBoundaryImageFilter_hxx
 
 #include "itkMapToBoundaryImageFilter.h"
-//#include <itkBinaryThresholdImageFilter.h>
-//#include <itkDanielssonDistanceMapImageFilter.h>
-//#include <itkImageFileWriter.h>
 #include "topology.h"
 
 namespace itk {
@@ -52,14 +49,12 @@ namespace itk {
 		treeGenerator->SetSample(samples);
 	    treeGenerator->SetBucketSize(16);
 		treeGenerator->Update();
-		//using NodeType = TreeType::KdTreeNodeType;
 
 		auto tree = treeGenerator->GetOutput();
 
 		MeasurementVectorType queryPoint;
 		unsigned int  numberOfNeighbors = 1;
 		typename TreeType::InstanceIdentifierVectorType neighbors;
-		//typename SkeletonImageType::IndexType lindex;
 
 		this->AllocateOutputs();
 		auto output = this->GetOutput();

@@ -14,28 +14,28 @@
 //limitations under the License.
 //**********************************************************
 //
-// Created by tabish on 2023-09-29.
+// Created by tabish on 2023-09-14.
 //
 
-#ifndef SKELTOOLS_itkMapToBoundaryImageFilter_h
-#define SKELTOOLS_itkMapToBoundaryImageFilter_h
+#ifndef SKELTOOLS_itkLocalConnectivityImageFilter_h
+#define SKELTOOLS_itkLocalConnectivityImageFilter_h
 
-#include <itkListSample.h>
-#include <itkKdTreeGenerator.h>
-#include <itkImageToImageFilter.h>
+#include <unordered_set>
+
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
+#include <itkConstNeighborhoodIterator.h>
+#include <itkImageToImageFilter.h>
 
 namespace itk {
     /// 1. manual instantation
     template<typename TInputImage,
-			 typename TSkeletonImage = TInputImage,
-			 typename TOutputImage = TSkeletonImage>
-    class ITK_TEMPLATE_EXPORT  MapToBoundaryImageFilter :
+			 typename TOutputImage = TInputImage>
+    class ITK_TEMPLATE_EXPORT  LocalConnectivityImageFilter :
             public ImageToImageFilter<TInputImage, TOutputImage> {
     public:
         /** Standard class typedefs. */
-        using Self = MapToBoundaryImageFilter;
+        using Self = LocalConnectivityImageFilter;
         using Superclass = ImageToImageFilter<TInputImage, TOutputImage>;
         using Pointer = SmartPointer<Self>;
         using ConstPointer = SmartPointer<const Self>;
@@ -47,47 +47,41 @@ namespace itk {
         itkNewMacro(Self);
 
         /** Run-time type information (and related methods). */
-        itkTypeMacro(MapToBoundaryImageFilter, ImageToImageFilter);
+        itkTypeMacro(LocalConnectivityImageFilter, ImageToImageFilter);
 
-        using SkeletonPointerType = typename TSkeletonImage::Pointer;
-		using SkeletonIteratorType = ImageRegionConstIteratorWithIndex<TSkeletonImage>;
-
-        using OutputPointerType = typename TOutputImage::Pointer;
-		using OutputIteratorType = itk::ImageRegionIteratorWithIndex<TOutputImage>;
-
-		// using OutputPixelType = typename TOutputImage::PixelType;
-		using InputPixelType = typename TInputImage::PixelType;
-
-		using MeasurementVectorType = Point<float, Dimension>;
-		using SampleType = Statistics::ListSample<MeasurementVectorType>;
-		using TreeGeneratorType = Statistics::KdTreeGenerator<SampleType>;
-		using TreeType = typename TreeGeneratorType::KdTreeType;
-
+		using NeighborhoodIteratorType = itk::ConstNeighborhoodIterator<TInputImage>;
 		using InputIteratorType = itk::ImageRegionConstIteratorWithIndex<TInputImage>;
+		using OutputIteratorType = itk::ImageRegionIterator<TOutputImage>;
 
-        void SetSkeletonImage(SkeletonPointerType skeletonImage){
-            m_SkeletonImage = skeletonImage;
-        }
-        SkeletonPointerType GetSkeletonImage(){
-            return m_SkeletonImage;
-        }
+		using IndexType = typename TInputImage::IndexType;
+		using WeightType = typename TInputImage::SizeType;
+		using SetType = std::unordered_set<SizeValueType>;
 
+		struct QPacketType{
+			IndexType index;
+			unsigned level;
+		};
+
+		itkSetMacro(MaxLevel, unsigned);
+		itkGetConstMacro(MaxLevel, unsigned);
 
     protected:
-        MapToBoundaryImageFilter();
-        ~MapToBoundaryImageFilter() = default;
+        LocalConnectivityImageFilter();
+        ~LocalConnectivityImageFilter() = default;
 
         void GenerateData() override;
         void PrintSelf(std::ostream &os, Indent indent) const override;
-
-        SkeletonPointerType m_SkeletonImage;
-
+		void Initialize();
+		SizeValueType LinearIndex(IndexType index);
+	private:
+		unsigned m_MaxLevel;
+		WeightType m_Weight;
     };
 
 
 } // end namespace itk
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkMapToBoundaryImageFilter.hxx"
+#include "itkLocalConnectivityImageFilter.hxx"
 #endif
 
-#endif //SKELTOOLS_itkMapToBoundaryImageFilter_hxx
+#endif //SKELTOOLS_itkLocalConnectivityImageFilter_hxx
