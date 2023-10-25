@@ -453,7 +453,7 @@ int skeletonize(const itk::CommandLineArgumentParser::Pointer &parser,
     }
 
     itk::ImageIOBase::Pointer imageIO =
-            itk::ImageIOFactory::CreateImageIO(inputFileName.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
+            itk::ImageIOFactory::CreateImageIO(inputFileName.c_str(), itk::CommonEnums::IOFileMode::ReadMode);
     imageIO->SetFileName(inputFileName);
     imageIO->ReadImageInformation();
     itk::CommonEnums::IOPixel pixelType = imageIO->GetPixelType();
