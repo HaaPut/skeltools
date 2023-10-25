@@ -456,8 +456,8 @@ int skeletonize(const itk::CommandLineArgumentParser::Pointer &parser,
             itk::ImageIOFactory::CreateImageIO(inputFileName.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
     imageIO->SetFileName(inputFileName);
     imageIO->ReadImageInformation();
-    itk::ImageIOBase::IOPixelType pixelType = imageIO->GetPixelType();
-    itk::ImageIOBase::IOComponentType componentType = imageIO->GetComponentType();
+    itk::CommonEnums::IOPixel pixelType = imageIO->GetPixelType();
+    itk::CommonEnums::IOComponent componentType = imageIO->GetComponentType();
     unsigned int dimensions = imageIO->GetNumberOfDimensions();
 
     logger->Info("Component Type  : " +
@@ -519,13 +519,13 @@ int skeletonize(const itk::CommandLineArgumentParser::Pointer &parser,
 		//case 2:
 	case 3:
 		switch (componentType) {
-		case itk::ImageIOBase::UCHAR:
+		case itk::CommonEnums::IOComponent::UCHAR:
 			return skeletonize_impl<unsigned char, 3>(parser, logger);
-		case itk::ImageIOBase::USHORT:
+		case itk::CommonEnums::IOComponent::USHORT:
 			return skeletonize_impl<unsigned short, 3>(parser, logger);
-		case itk::ImageIOBase::FLOAT:
+		case itk::CommonEnums::IOComponent::FLOAT:
 			return skeletonize_impl<float, 3>(parser, logger);
-		case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
+		case itk::CommonEnums::IOComponent::UNKNOWNCOMPONENTTYPE:
 		default:
 			logger->Critical("Unknown ComponentType :: " +
 							 std::string(typeid(componentType).name()) +

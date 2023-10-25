@@ -24,5 +24,8 @@
 
 namespace fs = std::filesystem;
 
+#include <itkImageIOFactory.h>
+#include <itkImageIOBase.h>
+#include <itkCommonEnums.h>
 
 #endif //SKELTOOLS_CONFIG_H
