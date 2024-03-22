@@ -20,3 +20,6 @@ add_executable(map-thickness)
 target_sources(map-thickness PRIVATE  "map-medial-thickness-to-boundary.cpp")
 target_link_libraries(map-thickness PRIVATE skel ${ITK_LIBRARIES})
 
+add_executable(local-conn)
+target_sources(local-conn PRIVATE  "local-connectivity.cpp")
+target_link_libraries(local-conn PRIVATE skel ${ITK_LIBRARIES})
