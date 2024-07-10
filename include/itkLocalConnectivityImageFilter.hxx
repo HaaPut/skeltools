@@ -95,10 +95,8 @@ namespace itk {
 						}
 					}
 				}
-				outIt.Set(count);
-			}else{
-				outIt.Set(0);
 			}
+			outIt.Set(count);
 			++outIt;
 			++ipIt;
 		}

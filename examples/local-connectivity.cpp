@@ -74,7 +74,7 @@ int compute_gm(const itk::CommandLineArgumentParser::Pointer &params,
     typename SkeletonImageType::Pointer skeleton = computeSkeleton(input,params,logger);
 
 
-    using LocalConnectivityFilterType = itk::LocalConnectivityImageFilter<SkeletonImageType, SkeletonImageType>;
+    using LocalConnectivityFilterType = itk::LocalConnectivityImageFilter<SkeletonImageType, DistanceImageType>;
     auto localConnectivityFeature = LocalConnectivityFilterType::New();
     localConnectivityFeature->SetInput(skeleton);
     unsigned radius=1;
@@ -87,7 +87,7 @@ int compute_gm(const itk::CommandLineArgumentParser::Pointer &params,
     std::string outputFileName;
     params->GetCommandLineArgument("-output", outputFileName);
 
-    using WriterType = itk::ImageFileWriter<SkeletonImageType>;
+    using WriterType = itk::ImageFileWriter<DistanceImageType>;
     auto writer = WriterType::New();
     writer->SetInput(output);
     writer->SetFileName(outputFileName);
