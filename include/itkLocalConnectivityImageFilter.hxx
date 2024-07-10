@@ -47,7 +47,7 @@ namespace itk {
 		for(size_t d =1; d < Dimension-1; ++d){
 			m_Weight[d] *= m_Weight[d-1];
 		}//R, R*C , Z (R,C)
-		for(size_t d = 1; d < Dimension; ++d){
+		for(int d = Dimension-1; d > 0; --d){
 			m_Weight[d] = m_Weight[d-1];
 		}// R, R, R*C (R,R)
 		m_Weight[0] = 1;
