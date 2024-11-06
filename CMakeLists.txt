@@ -30,7 +30,7 @@ endif()
 
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 set(DEBUG_CXX_FLAGS "-ggdb;-O1;-Wall;-Wextra;-march=native;-fPIC")
 set(RELEASE_CXX_FLAGS "-O3;-Wall;-march=native;-fPIC;-ffast-math")
