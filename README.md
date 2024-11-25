@@ -26,7 +26,7 @@ If all goes well you should now have `skeltools` executable insed the build fold
 # Computing object centerline.
 To compute (boundary distance weighted) medial curve for `dinosaur` sample image run
 ```bash
-$ skeltools -priority distance -curve -input data/dinosaur.tif -smooth 0.2  -fillholes -outputFolder results
+$ skeltool -priority distance -curve -input data/dinosaur.tif -smooth 0.2  -fillholes -outputFolder results -anchor aof
 ```
 If everything runs without errors you should see `dinosaur_distance_curve.tif` inside `results` folder.
 
@@ -38,7 +38,7 @@ If everything runs without errors you should see `dinosaur_distance_curve.tif` i
 # Computing object medial surface
 To compute medial surface for `dinosaur` sample image run
 ```bash
-$ skeltools -priority distance -surface -input data/dinosaur.tif -smooth 0.1  -fillholes -output results/dino_surface.tif
+$ skeltool -priority distance -surface -input data/dinosaur.tif -smooth 0.1  -fillholes -output results/dino_surface.tif -anchor aof
 ```
 The output of the above command should be the medial surface `dino_surface.tif` inside the `results` folder.
 <figure style="display:block; margin: 0 auto; text-align: center; width:600px">
