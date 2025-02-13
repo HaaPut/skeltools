@@ -55,3 +55,10 @@ the boundary.
 <figcaption>Visualization of object thickness to object boundary for dinosaur sample image</figcaption>
 </figure>
 
+## References
+
+<a id="1">[1]</a> Siddiqi, K., Bouix, S., Tannenbaum, A., & Zucker, S. W. (2002). Hamilton-jacobi skeletons. International Journal of Computer Vision, 48, 215-231.
+
+<a id="2">[2]</a> Dimitrov, P., Damon, J. N., & Siddiqi, K. (2003, June). Flux invariants for shape. In 2003 IEEE Computer Society Conference on Computer Vision and Pattern Recognition, 2003. Proceedings. (Vol. 1, pp. I-I). IEEE.
+
+<a id="3">[3]</a> Siddiqi, K., & Pizer, S. (Eds.). (2008). Medial representations: mathematics, algorithms and applications (Vol. 37). Springer Science & Business Media.
