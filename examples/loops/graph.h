@@ -128,9 +128,9 @@ template<unsigned Dimension = 3>
 int kruskal_mst(Graph<Dimension>& graph);
 
 
-template<typename VoxelSkeltonType>
-int voxelSketonToGraph( typename VoxelSkeltonType::Pointer const & skeleton,
-                        int reduction, double doubleThreshold, fs::path& outputFolderPath,
-                       const itk::Logger::Pointer& logger);
+template<typename VoxelSkeletonType>
+int voxelSkeletonToGraph(typename VoxelSkeletonType::Pointer const & skeleton,
+                         int reduction, double doubleThreshold, fs::path& outputFolderPath,
+                         const itk::Logger::Pointer& logger);
 
 #endif //SKELTOOLS_GRAPH_H

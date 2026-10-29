@@ -132,8 +132,8 @@ int main(int argc, char* argv[]) {
     auto objectImage = objectReader->GetOutput();
     logger->Debug("Loaded object image file " + inputFileName + "\n");
 
-    using VoxelSkeltonImageType = ObjectImageType;
-    using OutputImageType = VoxelSkeltonImageType;
+    using VoxelSkeletonImageType = ObjectImageType;
+    using OutputImageType = VoxelSkeletonImageType;
     auto voxelSkeleton = computeAOFAnchoredMedialCurve<ObjectImageType, OutputImageType>(
         objectImage, params, logger
     );
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     //----------------------------------------------------------------
     // Graph Construction & Reduction
     //----------------------------------------------------------------
-    if (voxelSketonToGraph<VoxelSkeltonImageType>(voxelSkeleton, reduction, distanceThreshold, outputFolderpath, logger) != EXIT_SUCCESS) {
+    if (voxelSkeletonToGraph<VoxelSkeletonImageType>(voxelSkeleton, reduction, distanceThreshold, outputFolderpath, logger) != EXIT_SUCCESS) {
         logger->Critical("VoxelSketon To Graph Construction failed.\n");
         return EXIT_FAILURE;
     }

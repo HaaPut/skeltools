@@ -490,13 +490,13 @@ int kruskal_mst(Graph<Dimension>& graph) {
 
 template int kruskal_mst<3>(Graph<3>&);
 
-template<typename VoxelSkeltonImageType> 
-int voxelSketonToGraph(typename VoxelSkeltonImageType::Pointer const & voxelSkeleton,
+template<typename VoxelSkeletonImageType> 
+int voxelSkeletonToGraph(typename VoxelSkeletonImageType::Pointer const & voxelSkeleton,
                          int reduction, double distanceThreshold, fs::path& outputFolderpath,
                          const itk::Logger::Pointer& logger) {
-    using IndexType = typename VoxelSkeltonImageType::IndexType;
-    constexpr unsigned Dimension = VoxelSkeltonImageType::ImageDimension;
-    using SkeletonPixelType = typename VoxelSkeltonImageType::PixelType;
+    using IndexType = typename VoxelSkeletonImageType::IndexType;
+    constexpr unsigned Dimension = VoxelSkeletonImageType::ImageDimension;
+    using SkeletonPixelType = typename VoxelSkeletonImageType::PixelType;
 
     std::string reductionLevel = (reduction > 0) ? std::to_string(reduction) : "inf";
     auto spacing = voxelSkeleton->GetSpacing();
@@ -517,13 +517,13 @@ int voxelSketonToGraph(typename VoxelSkeltonImageType::Pointer const & voxelSkel
         return lIndex;
     };
 
-    typename VoxelSkeltonImageType::SizeType radius;
+    typename VoxelSkeletonImageType::SizeType radius;
     radius.Fill(1);
 
-    using BoundaryConditionType = itk::ConstantBoundaryCondition<VoxelSkeltonImageType>;
-    using VoxelSkeltonIteratorType = itk::NeighborhoodIterator<VoxelSkeltonImageType, BoundaryConditionType>;
-    VoxelSkeltonIteratorType skit(radius, voxelSkeleton, voxelSkeleton->GetLargestPossibleRegion());
-    using VoxelNeighborhoodType = typename VoxelSkeltonIteratorType::NeighborhoodType;
+    using BoundaryConditionType = itk::ConstantBoundaryCondition<VoxelSkeletonImageType>;
+    using VoxelSkeletonIteratorType = itk::NeighborhoodIterator<VoxelSkeletonImageType, BoundaryConditionType>;
+    VoxelSkeletonIteratorType skit(radius, voxelSkeleton, voxelSkeleton->GetLargestPossibleRegion());
+    using VoxelNeighborhoodType = typename VoxelSkeletonIteratorType::NeighborhoodType;
 
     size_t voxelCount = 0;
     for (skit.GoToBegin(); !skit.IsAtEnd(); ++skit) {
@@ -628,5 +628,5 @@ int voxelSketonToGraph(typename VoxelSkeltonImageType::Pointer const & voxelSkel
 }
 
 using ImageType = typename itk::Image<unsigned char, 3>;
-template int voxelSketonToGraph<ImageType>(ImageType::Pointer const&, int, double, fs::path&, const itk::Logger::Pointer& );
+template int voxelSkeletonToGraph<ImageType>(ImageType::Pointer const&, int, double, fs::path&, const itk::Logger::Pointer& );
 
