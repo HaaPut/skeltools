@@ -23,3 +23,19 @@ target_link_libraries(map-thickness PRIVATE skel ${ITK_LIBRARIES})
 add_executable(local-conn)
 target_sources(local-conn PRIVATE  "local-connectivity.cpp")
 target_link_libraries(local-conn PRIVATE skel ${ITK_LIBRARIES})
+
+add_executable(outside-ms)
+target_sources(outside-ms PRIVATE  "medial-surface-outside.cpp")
+target_link_libraries(outside-ms PRIVATE skel ${ITK_LIBRARIES})
+
+add_executable(count_loops)
+target_sources(count_loops PRIVATE
+    "loops/count_loops.cpp"
+    "loops/graph.cpp"
+    "loops/loops.cpp"
+)
+
+target_include_directories(count_loops PRIVATE
+                           ${CMAKE_CURRENT_SOURCE_DIR}/loops
+                           )
+target_link_libraries(count_loops PRIVATE skel ${ITK_LIBRARIES})
